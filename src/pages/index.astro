@@ -10,8 +10,8 @@ import focus from '../assets/shots/workbench-focus.png';
 import freeTime from '../assets/shots/free-time.png';
 import horizon from '../assets/shots/horizon.png';
 
-// 黑洞在背景里走完整条飞行路线（scripts/blackhole.ts）。内容都在玻璃卡片上，
-// 卡片左右交替，文字和它的截图在同一张卡里。
+// 黑洞在背景里走完整条飞行路线（scripts/blackhole.ts）。功能展示是一个吸顶舞台（scripts/showcase.ts），
+// 每章两片独立的玻璃：截图一片、文案一片，滚动时依次登场。
 const chapters = [
   { n: '01', k: '析熙', h: '说一句，它就排好了', p: '「物理实验报告明天交，大概 45 分钟。」析熙记下事项，放进今晚真实的空档。回执只写实际保存的内容，可以一起撤销。',
     img: home, alt: 'ASTaria 首页：析熙对话与下方回执，列出截止、用时、安排时段与撤销入口', facts: [['安排', '18:00–18:45'], ['用时', '45 分钟'], ['截止', '10/9']] },
@@ -44,23 +44,36 @@ const chapters = [
     <p class="intro" data-reveal>本机优先的个人时间与事项应用。和析熙聊作业、计划或心愿，把任务放进课程与日常之间的真实空档。</p>
   </section>
 
-  {chapters.map((c, i) => (
-    <section class:list={['ch', { flip: i % 2 === 1 }]} aria-labelledby={`c${c.n}`}>
-      <article class="card glass" data-glass data-reveal>
-        <div class="card-text">
-          <p class="num mono">{c.n}　{c.k}</p>
-          <h2 id={`c${c.n}`} class="title">{c.h}</h2>
-          <p class="body">{c.p}</p>
-          {c.facts && (
-            <dl class="facts">
-              {c.facts.map(([k, v]) => <div><dt>{k}</dt><dd class="mono">{v}</dd></div>)}
-            </dl>
-          )}
-        </div>
-        <Shot class="card-shot" src={c.img} alt={c.alt} eager={i === 0} sizes="(min-width: 1100px) 700px, 92vw" />
-      </article>
-    </section>
-  ))}
+  <!-- 功能展示：吸顶舞台，五章依次登场。截图与文案是两片独立的玻璃。 -->
+  <section id="show" class="show" style={`--n:${chapters.length}`} aria-label="ASTaria 的功能">
+    <div class="stage">
+      {chapters.map((c, i) => (
+        <article class:list={['slide', { flip: i % 2 === 1 }]} aria-labelledby={`c${c.n}`}>
+          <div class="pane pane-img glass" data-glass>
+            <Shot src={c.img} alt={c.alt} eager={i === 0} sizes="(min-width: 1100px) 900px, 92vw" />
+          </div>
+          <div class="pane pane-text glass" data-glass>
+            <p class="num mono line" style="--d:0">{c.n}　{c.k}</p>
+            <h2 id={`c${c.n}`} class="title line" style="--d:1">{c.h}</h2>
+            <p class="body line" style="--d:2">{c.p}</p>
+            {c.facts && (
+              <dl class="facts line" style="--d:3">
+                {c.facts.map(([k, v]) => <div><dt>{k}</dt><dd class="mono">{v}</dd></div>)}
+              </dl>
+            )}
+          </div>
+        </article>
+      ))}
+      <nav class="rail" aria-label="章节">
+        {chapters.map((c, i) => (
+          <button type="button" data-go={i} aria-current={i === 0 ? 'step' : 'false'}>
+            <span class="mono">{c.n}</span><span class="rk">{c.k}</span>
+          </button>
+        ))}
+        <span class="rail-bar" aria-hidden="true"><i></i></span>
+      </nav>
+    </div>
+  </section>
 
   <section class="ch center" aria-labelledby="c06">
     <article class="card glass narrow" data-glass data-reveal>
@@ -94,7 +107,9 @@ const chapters = [
   <script>
     import { mountBlackHole } from '../scripts/blackhole';
     import { mountGlass } from '../scripts/glass';
+    import { mountShowcase } from '../scripts/showcase';
     if (!mountBlackHole(document.getElementById('bh')!)) document.documentElement.classList.add('bh-off');
+    mountShowcase();
     mountGlass();
   </script>
 </Base>
