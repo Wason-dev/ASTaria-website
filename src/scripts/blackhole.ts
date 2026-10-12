@@ -1,6 +1,6 @@
 // 背景黑洞：一条完整的飞行路线，随滚动推进。
 //
-//   远处侧视 → 一边靠近一边环绕，抬到斜上方 → 压低掠过盘面 → 俯冲进阴影，整屏变黑 → 远景重新亮起
+//   远处侧视 → 一边靠近一边环绕，抬到斜上方 → 压低掠过盘面 → 俯冲进阴影，整屏变黑，之后留在黑暗里
 //
 // 黑洞始终在画面中央附近，不躲任何东西；内容放在玻璃卡片上，玻璃负责可读性。
 // 距离只减不增、阴影只大不小、方位匀速转动、仰角只有一个起伏。所有量都只朝一个方向走。
@@ -106,20 +106,15 @@ export function mountBlackHole(host: HTMLElement, opts: { span?: number } = {}) 
     const end = approach(span);
     if (!hasDive || y <= diveTop) return approach(clamp01(y / Math.max(diveTop, 1)) * span);
     const rate = (YAW_SPAN * span) / Math.max(diveTop, 1); // 穿过视界时保持同样的转速
-    if (y < revealAt) {
-      // 俯冲：继续靠近，镜头转向正对黑洞，阴影长大到盖满整屏
-      const u = clamp01((y - diveTop) / Math.max(voidAt - diveTop, 1));
-      const e = 0.3 * u + 0.7 * u * u * (3 - 2 * u);
-      const vd = 3.2, vf = (shadowTan(vd) / Math.hypot(W / H / 2, 0.5)) * 0.85;
-      return {
-        dist: logLerp(end.dist, vd, e), fov: logLerp(end.fov, vf, e),
-        incl: end.incl + (1.36 - end.incl) * smooth(0.25, 1, u),
-        sx: 0, sy: end.sy * (1 - u), yaw: end.yaw + rate * (y - diveTop), expo: 1.05,
-      };
-    }
-    // 远景：在黑暗里换镜头，缓缓推近、亮起
-    const o = approach(0), u = smooth(revealAt, revealAt + H * 0.8, y);
-    return { ...o, dist: o.dist * (1.35 - 0.35 * u), yaw: YAW0 + YAW_SPAN + 1.3 + rate * (y - revealAt) * 0.5, expo: 1.15 * u };
+    // 俯冲：继续靠近，镜头转向正对黑洞，阴影长大到盖满整屏；之后一直留在视界里，整屏黑
+    const u = clamp01((y - diveTop) / Math.max(voidAt - diveTop, 1));
+    const e = 0.3 * u + 0.7 * u * u * (3 - 2 * u);
+    const vd = 3.2, vf = (shadowTan(vd) / Math.hypot(W / H / 2, 0.5)) * 0.85;
+    return {
+      dist: logLerp(end.dist, vd, e), fov: logLerp(end.fov, vf, e),
+      incl: end.incl + (1.36 - end.incl) * smooth(0.25, 1, u),
+      sx: 0, sy: end.sy * (1 - u), yaw: end.yaw + rate * (y - diveTop), expo: 1.05,
+    };
   };
 
   // ---------- 渲染 ----------
