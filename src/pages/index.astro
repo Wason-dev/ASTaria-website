@@ -53,7 +53,7 @@ const chapters = [
   <section id="show" class="show" style={`--n:${chapters.length}`} aria-label="ASTaria 的功能">
     <div class="stage">
       {chapters.map((c, i) => (
-        <article class:list={['slide', { flip: i % 2 === 1 }]} aria-labelledby={`c${c.n}`}>
+        <article class:list={['slide', { flip: i % 2 === 1 }]} data-n={c.n} aria-labelledby={`c${c.n}`}>
           <div class="pane pane-img glass" data-glass>
             <Shot src={c.img} alt={c.alt} eager={i === 0} sizes="(min-width: 1100px) 900px, 92vw" />
           </div>
