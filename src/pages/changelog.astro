@@ -1,0 +1,55 @@
+---
+import Doc from '../layouts/Doc.astro';
+import { changelog, GROUPS } from '../data/changelog';
+import { release } from '../data/release';
+const [latest, ...older] = changelog;
+const rel = (tag: string) => `https://github.com/${release.repo}/releases/tag/${tag}`;
+---
+
+<Doc
+  page="changelog"
+  title="更新记录"
+  lead="每一版都分开写新增、修复、已知限制和尚未验收的部分。没有验收的，不会写成已经完成。"
+  description="ASTaria 各版本的新增功能、修复、性能、兼容性、已知限制与未验收内容。"
+>
+  <section class="next" aria-label="下一个正式版本">
+    <p class="eyebrow">下一个正式版本</p>
+    <p class="next-v">{release.nextRelease.version}<span class="status" data-s="planned">尚未发布</span></p>
+  </section>
+
+  {[latest].map((e) => (
+    <section id={e.tag} class="ver" aria-labelledby={`h-${e.tag}`}>
+      <p class="eyebrow">最新 · 预发布</p>
+      <h2 id={`h-${e.tag}`}>{e.name} <span class="mono v">{e.version}</span></h2>
+      <p class="small">{e.date} · <a href={rel(e.tag)} target="_blank" rel="noopener noreferrer">GitHub Release ↗<span class="sr-only">（新窗口打开）</span></a></p>
+      {GROUPS.map(([k, label]) => e[k]?.length ? (<><h3>{label}</h3><ul>{e[k]!.map((x) => <li>{x}</li>)}</ul></>) : null)}
+    </section>
+  ))}
+
+  <section aria-labelledby="h-older">
+    <h2 id="h-older">更早的版本</h2>
+    {older.map((e) => (
+      <details class="qa" id={e.tag}>
+        <summary>
+          <span>{e.name} <span class="mono v">{e.version}</span> <span class="d">{e.date}</span></span>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="m6 9 6 6 6-6" /></svg>
+        </summary>
+        <div>
+          {GROUPS.map(([k, label]) => e[k]?.length ? (<><h3>{label}</h3><ul>{e[k]!.map((x) => <li>{x}</li>)}</ul></>) : null)}
+          <p class="small"><a href={rel(e.tag)} target="_blank" rel="noopener noreferrer">GitHub Release ↗<span class="sr-only">（新窗口打开）</span></a></p>
+        </div>
+      </details>
+    ))}
+  </section>
+</Doc>
+
+<style>
+  .next { padding: 24px 0 !important; border-top: 1px solid var(--line-2) !important; border-bottom: 1px solid var(--line-2); margin-top: 0 !important; padding-top: 0 !important; border-top: 0 !important; }
+  .next-v { display: flex; align-items: center; gap: 16px; margin-top: 8px !important; font-size: 28px !important; font-weight: 600; color: var(--fg) !important; }
+  .v { color: var(--fg-3); font-size: 0.55em; font-weight: 400; margin-left: 8px; }
+  .d { color: var(--fg-4); font-size: 14px; font-weight: 400; margin-left: 10px; }
+  .ver .small { margin-top: 8px; }
+  details.qa h3 { margin-top: 18px; font-size: 16px; color: var(--fg-3); }
+  details.qa ul { margin-top: 8px; }
+  details.qa li { font-size: 16px; }
+</style>

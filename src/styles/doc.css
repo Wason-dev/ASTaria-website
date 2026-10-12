@@ -1,0 +1,90 @@
+/* 说明类页面。 */
+.doc { padding-top: 60px; padding-bottom: 120px; }
+.doc .wrap { max-width: calc(900px + var(--pad) * 2); }
+/* 标题区与首页同一构图：只占左侧，右侧留给黑洞 */
+.doc-head { min-height: 62vh; display: flex; flex-direction: column; justify-content: center; }
+.doc-head > * { max-width: min(46vw - var(--pad), 540px); }
+.doc-head .t-1 { margin-top: 20px; font-size: clamp(40px, 4.6vw, 72px); line-height: 1.06; letter-spacing: -0.03em; }
+@media (max-aspect-ratio: 19/20) {
+  .doc-head { min-height: 0; padding-top: 38svh; }
+  .doc-head > * { max-width: none; }
+}
+.doc-head .lead { color: var(--fg-2); max-width: 30em; }
+.doc-head { text-shadow: 0 2px 24px rgb(0 0 0 / 0.9), 0 0 3px rgb(0 0 0 / 0.6); }
+.doc-head .lead { margin-top: 20px; }
+.toc { display: flex; flex-wrap: wrap; gap: 10px 26px; margin-top: 36px; padding-top: 22px; border-top: 1px solid var(--line-2); }
+.toc a { color: var(--gold-2); font-size: 15px; }
+.toc a:hover { text-decoration: underline; text-underline-offset: 4px; }
+
+.doc-body { margin-top: 8vh; }
+/* 玻璃阅读面：背景黑洞在这里被重度模糊、压暗，正文对比度稳定 */
+.sheet {
+  padding: clamp(28px, 5vw, 72px);
+  border-radius: clamp(24px, 3vw, 40px);
+  background: linear-gradient(180deg, rgb(14 14 16 / 0.62), rgb(8 8 10 / 0.72));
+  -webkit-backdrop-filter: blur(40px) saturate(160%);
+  backdrop-filter: blur(40px) saturate(160%);
+}
+.sheet > section { padding-top: 56px; margin-top: 56px; border-top: 1px solid var(--line-2); }
+.sheet > section:first-child { margin-top: 0; padding-top: 0; border-top: 0; }
+.doc-body h2 { font-size: clamp(28px, 3vw, 36px); line-height: 1.2; }
+.doc-body h3 { margin-top: 36px; font-size: 21px; }
+.doc-body p, .doc-body li { color: var(--fg-2); font-size: 17px; line-height: 1.75; }
+.doc-body h2 + p, .doc-body h3 + p { margin-top: 14px; }
+.doc-body p + p { margin-top: 14px; }
+.doc-body ul, .doc-body ol { margin: 16px 0 0; padding-left: 1.3em; }
+.doc-body li + li { margin-top: 8px; }
+.doc-body li::marker { color: var(--fg-4); }
+.doc-body strong { color: var(--fg); font-weight: 600; }
+.doc-body a:not(.btn) { color: var(--gold-2); }
+.doc-body a:not(.btn):hover { text-decoration: underline; text-underline-offset: 3px; }
+.doc-body code { font-size: 0.88em; padding: 0.1em 0.35em; border-radius: 5px; background: var(--bg-3); color: var(--fg); overflow-wrap: anywhere; }
+
+.note {
+  margin-top: 22px; padding: 18px 20px; border-radius: 14px;
+  background: rgb(255 255 255 / 0.04); box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.08);
+  color: var(--fg-2); font-size: 15.5px; line-height: 1.7;
+}
+.note strong { color: var(--gold-2); }
+
+.code { position: relative; margin-top: 18px; }
+.code pre {
+  margin: 0; padding: 18px 56px 18px 20px; border-radius: 14px;
+  background: rgb(0 0 0 / 0.42); box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.08);
+  color: var(--fg); font-size: 13.5px; line-height: 1.75; overflow-x: auto; white-space: pre;
+}
+.copy {
+  position: absolute; top: 10px; right: 10px; display: grid; place-items: center;
+  width: 34px; height: 34px; padding: 0; border: 0; border-radius: 10px;
+  background: rgb(255 255 255 / 0.06); color: var(--fg-3); cursor: pointer;
+  transition: background-color 200ms var(--ease), color 200ms var(--ease);
+}
+.copy:hover { background: rgb(255 255 255 / 0.12); color: var(--fg); }
+.copy svg { width: 16px; height: 16px; }
+.copy .ok { display: none; }
+.copy[data-done] .ok { display: block; color: var(--gold-2); }
+.copy[data-done] .cp { display: none; }
+
+.kv { display: grid; grid-template-columns: max-content 1fr; gap: 0; margin: 18px 0 0; }
+.kv dt, .kv dd { padding: 12px 0; border-top: 1px solid var(--line-2); font-size: 15.5px; }
+.kv dt { color: var(--fg-3); padding-right: 28px; }
+.kv dd { margin: 0; color: var(--fg); overflow-wrap: anywhere; }
+
+details.qa { border-top: 1px solid var(--line-2); }
+details.qa:last-of-type { border-bottom: 1px solid var(--line-2); }
+details.qa summary {
+  display: flex; justify-content: space-between; gap: 20px; padding: 22px 0;
+  list-style: none; cursor: pointer; font-size: 19px; font-weight: 600; color: var(--fg);
+}
+details.qa summary::-webkit-details-marker { display: none; }
+details.qa summary svg { flex: none; width: 20px; height: 20px; color: var(--fg-3); transition: transform 300ms var(--ease); }
+details.qa[open] summary svg { transform: rotate(180deg); }
+details.qa > div { padding: 0 0 24px; }
+details.qa > div p { color: var(--fg-2); }
+details.qa > div p + p { margin-top: 12px; }
+
+@media (max-width: 600px) {
+  .kv { grid-template-columns: 1fr; }
+  .kv dt { padding-bottom: 0; border-top: 1px solid var(--line-2); }
+  .kv dd { padding-top: 4px; border-top: 0; }
+}

@@ -1,0 +1,89 @@
+---
+import Doc from '../layouts/Doc.astro';
+import Icon from '../components/Icon.astro';
+import Code from '../components/Code.astro';
+import { release, releaseUrl, releasesIndexUrl, assetUrl, checksumUrl, formatSize, publishedDate } from '../data/release';
+---
+
+<Doc
+  page="download"
+  title="下载 ASTaria"
+  eyebrow={`${release.displayName} · ${release.version} · 预发布`}
+  lead={`发布于 ${publishedDate}。安装包只在 GitHub Releases 提供，下面每个按钮都直接指向这一版的对应文件。`}
+  description="下载 ASTaria 预发布版：macOS 13+ Apple Silicon 与 Windows x64 试验版。每个文件附 SHA-256 与签名状态。"
+>
+  {release.platforms.map((p) => (
+    <section id={p.platform} class="plat" aria-labelledby={`h-${p.platform}`}>
+      <div class="plat-head">
+        <h2 id={`h-${p.platform}`}>{p.name}</h2>
+        <span class="status" data-s={p.status}>{p.statusLabel}</span>
+      </div>
+      {p.requirement && <p>{p.requirement}</p>}
+
+      {p.assets.length > 0 ? (
+        p.assets.map((a, i) => (
+          <div class="asset">
+            <div class="asset-top">
+              <div>
+                <p class="asset-label">{a.label}</p>
+                <p class="asset-meta mono">{a.fileName}</p>
+              </div>
+              <a class="btn btn-primary" href={assetUrl(a.fileName)}><Icon name="download" />下载 · {formatSize(a.sizeBytes)}</a>
+            </div>
+            <dl class="kv">
+              <dt>架构</dt><dd>{p.architecture}</dd>
+              <dt>版本</dt><dd class="mono">{release.version}</dd>
+              <dt>发布日期</dt><dd class="mono">{publishedDate}</dd>
+              <dt>签名</dt><dd>{p.signingStatus}</dd>
+              <dt>SHA-256</dt>
+              <dd>
+                <Code id={`sha-${p.platform}-${i}`} code={a.sha256} label="复制 SHA-256" />
+                <a class="sha-file" href={checksumUrl(a.fileName)}>下载 .sha256 校验文件</a>
+              </dd>
+            </dl>
+          </div>
+        ))
+      ) : (
+        <p class="none">没有可下载的文件。这里不会放一个会失败的下载按钮。</p>
+      )}
+
+      {p.notes.map((n) => <p class="small plat-note">{n}</p>)}
+      <p class="plat-links">
+        <a href={`/install/#${p.installAnchor}`}>{p.name} 安装说明</a>
+        <a href={releaseUrl} target="_blank" rel="noopener noreferrer">完整 Release ↗<span class="sr-only">（新窗口打开）</span></a>
+      </p>
+    </section>
+  ))}
+
+  <section id="verify" aria-labelledby="h-verify">
+    <h2 id="h-verify">核对下载的文件</h2>
+    <p>下载完成后计算文件的 SHA-256，与上面公布的值逐位比对。一致才说明文件在传输中没有被改动。</p>
+    <h3>macOS</h3>
+    <Code id="v-mac" code={`shasum -a 256 ~/Downloads/${release.platforms[0].assets[0].fileName}`} />
+    <h3>Windows（PowerShell）</h3>
+    <Code id="v-win" code={`Get-FileHash $HOME\\Downloads\\${release.platforms[1].assets[0].fileName} -Algorithm SHA256`} />
+  </section>
+
+  <section id="slow" aria-labelledby="h-slow">
+    <h2 id="h-slow">GitHub 下载较慢时</h2>
+    <p>ASTaria 目前只在 GitHub Releases 发布安装包，没有国内镜像，也没有下载代理，无法保证在每个网络环境下的速度。可以稍后重试，或换一个网络环境。</p>
+    <p>无论从哪里拿到安装包，都请核对 SHA-256 与上面公布的值完全一致。所有历史版本见 <a href={releasesIndexUrl} target="_blank" rel="noopener noreferrer">GitHub Releases ↗</a>。</p>
+  </section>
+</Doc>
+
+<style>
+  .plat-head { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 20px; }
+  .plat > p:not(.small):not(.plat-links):not(.none) { margin-top: 12px; }
+  .asset { margin-top: 28px; padding: 24px; border-radius: 22px; background: rgb(255 255 255 / 0.035); box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.08), inset 0 1px 0 rgb(255 255 255 / 0.1); }
+  .asset-top { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 18px; }
+  .asset-label { color: var(--fg) !important; font-size: 19px !important; font-weight: 600; }
+  .asset-meta { margin-top: 4px !important; color: var(--fg-3) !important; font-size: 13px !important; overflow-wrap: anywhere; }
+  .asset .kv { margin-top: 20px; }
+  .asset :global(.code) { margin-top: 0; }
+  .asset :global(.code pre) { font-size: 12.5px; white-space: pre-wrap; word-break: break-all; padding: 12px 52px 12px 14px; }
+  .asset :global(.copy) { top: 6px; right: 6px; }
+  .sha-file { display: inline-block; margin-top: 8px; font-size: 14px; }
+  .none { margin-top: 18px; color: var(--fg-3) !important; }
+  .plat-note { margin-top: 14px !important; color: var(--fg-3) !important; font-size: 15px !important; }
+  .plat-links { display: flex; flex-wrap: wrap; gap: 10px 28px; margin-top: 20px !important; font-size: 15px !important; }
+</style>

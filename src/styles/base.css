@@ -1,0 +1,197 @@
+/* ASTaria 官网 · 基础：令牌、排版、玻璃、按钮、进场动画。
+   气质：Apple 产品页的节奏与留白 + 电影片头的黑。暖金只做极少的点缀。 */
+
+@font-face {
+  font-family: 'Geist Mono';
+  src: url('/fonts/GeistMono.woff2') format('woff2');
+  font-weight: 100 900;
+  font-display: swap;
+}
+
+:root {
+  --bg: #000;
+  --bg-2: #0b0b0c;
+  --bg-3: #151517;
+  --fg: #f5f2ec;
+  --fg-2: #cfcbc4;
+  --fg-3: #8f8c87;
+  --fg-4: #6a6864;
+  --line: rgb(255 255 255 / 0.12);
+  --line-2: rgb(255 255 255 / 0.07);
+  --gold: #d5bb8b;
+  --gold-2: #ecd3a4;
+
+  --sans: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'PingFang SC', 'HarmonyOS Sans SC',
+    'Microsoft YaHei UI', 'Noto Sans SC', 'Helvetica Neue', sans-serif;
+  --mono: 'Geist Mono', ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+
+  --wrap: 1120px;
+  --wide: 1360px;
+  --pad: clamp(20px, 5vw, 48px);
+  --ease: cubic-bezier(0.16, 1, 0.3, 1);
+  color-scheme: dark;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+html {
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--sans);
+  font-size: 17px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  scroll-padding-top: 72px;
+  overflow-x: clip;
+}
+body { margin: 0; overflow-x: clip; }
+img, svg, canvas, picture { display: block; max-width: 100%; }
+a { color: inherit; text-decoration: none; }
+p, figure { margin: 0; }
+h1, h2, h3, h4 { margin: 0; font-weight: 600; text-wrap: balance; }
+code, pre, .mono { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+::selection { background: rgb(213 187 139 / 0.32); }
+:focus-visible { outline: 2px solid var(--gold-2); outline-offset: 3px; border-radius: 6px; }
+.sr-only {
+  position: absolute !important; width: 1px; height: 1px; margin: -1px; padding: 0;
+  overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+}
+.wrap { width: 100%; max-width: calc(var(--wrap) + var(--pad) * 2); margin-inline: auto; padding-inline: var(--pad); }
+.wide { width: 100%; max-width: calc(var(--wide) + var(--pad) * 2); margin-inline: auto; padding-inline: var(--pad); }
+
+/* ---------- 排版 ---------- */
+.eyebrow { color: var(--gold-2); font-size: 15px; font-weight: 600; letter-spacing: 0.02em; }
+.t-hero { font-size: clamp(60px, 10vw, 136px); line-height: 1; letter-spacing: -0.035em; }
+.t-1 { font-size: clamp(40px, 5.8vw, 80px); line-height: 1.08; letter-spacing: -0.01em; }
+.t-2 { font-size: clamp(32px, 4.2vw, 56px); line-height: 1.12; letter-spacing: -0.005em; }
+.t-3 { font-size: clamp(22px, 2vw, 28px); line-height: 1.3; }
+.lead {
+  color: var(--fg-3);
+  font-size: clamp(19px, 1.7vw, 24px);
+  font-weight: 500;
+  line-height: 1.5;
+  max-width: 34em;
+}
+.lead strong { color: var(--fg); font-weight: 600; }
+.small { font-size: 14px; color: var(--fg-3); }
+.fine { font-size: 12.5px; color: var(--fg-4); line-height: 1.6; }
+
+/* ---------- 玻璃 ----------
+   厚玻璃：背景被强模糊与提亮，边缘有一圈折射亮边（上亮下暗），
+   表面有一道跟随指针的高光（--gx/--gy 由 scripts/glass.ts 写入）。 */
+.glass {
+  position: relative;
+  isolation: isolate;
+  background:
+    linear-gradient(180deg, rgb(255 255 255 / 0.11), rgb(255 255 255 / 0.03) 42%, rgb(255 255 255 / 0.05));
+  -webkit-backdrop-filter: blur(28px) saturate(190%) brightness(1.12);
+  backdrop-filter: blur(28px) saturate(190%) brightness(1.12);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.45),
+    inset 0 -1px 0 rgb(255 255 255 / 0.08),
+    inset 1px 0 0 rgb(255 255 255 / 0.12),
+    inset -1px 0 0 rgb(255 255 255 / 0.06),
+    0 1px 0 rgb(255 255 255 / 0.04),
+    0 30px 80px -24px rgb(0 0 0 / 0.75);
+}
+/* 折射亮边：一圈由上至下渐隐的渐变描边 */
+.glass::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  padding: 1.25px;
+  background: linear-gradient(165deg, rgb(255 255 255 / 0.7), rgb(255 255 255 / 0.12) 30%, rgb(236 211 164 / 0.08) 70%, rgb(255 255 255 / 0.32));
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
+  pointer-events: none;
+}
+/* 跟随指针的表面高光 */
+.glass::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background:
+    radial-gradient(420px circle at var(--gx, 30%) var(--gy, -20%), rgb(255 248 235 / 0.16), transparent 45%),
+    radial-gradient(900px circle at var(--gx, 30%) var(--gy, -20%), rgb(236 211 164 / 0.06), transparent 60%);
+  mix-blend-mode: screen;
+  pointer-events: none;
+}
+
+/* ---------- 按钮 ---------- */
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 9px;
+  height: 50px; padding: 0 28px; border: 0; border-radius: 999px;
+  font: inherit; font-size: 17px; font-weight: 500; letter-spacing: 0; white-space: nowrap;
+  cursor: pointer; color: var(--fg);
+  transition: background-color 300ms var(--ease), box-shadow 300ms var(--ease), transform 300ms var(--ease), color 300ms var(--ease);
+}
+.btn svg { width: 18px; height: 18px; flex: none; }
+.btn:active { transform: scale(0.98); }
+.btn-primary {
+  color: #0b0a08;
+  background: linear-gradient(180deg, #fffdf9 0%, #ebe5da 100%);
+  box-shadow:
+    inset 0 1px 0 #fff,
+    inset 0 -1px 0 rgb(0 0 0 / 0.08),
+    0 0 0 1px rgb(255 255 255 / 0.35),
+    0 14px 40px -14px rgb(236 211 164 / 0.55);
+}
+.btn-primary:hover {
+  box-shadow:
+    inset 0 1px 0 #fff,
+    inset 0 -1px 0 rgb(0 0 0 / 0.08),
+    0 0 0 1px rgb(255 255 255 / 0.55),
+    0 18px 52px -12px rgb(236 211 164 / 0.75);
+}
+.btn-ghost { color: var(--fg); background: rgb(255 255 255 / 0.06); box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.14); }
+.btn-ghost:hover { background: rgb(255 255 255 / 0.12); box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.28); }
+.btn-sm { height: 34px; padding: 0 16px; font-size: 14px; }
+.btn-sm svg { width: 15px; height: 15px; }
+
+.more {
+  display: inline-flex; align-items: center; gap: 2px;
+  color: var(--gold-2); font-size: 17px; font-weight: 500;
+}
+.more svg { width: 16px; height: 16px; transition: transform 300ms var(--ease); }
+.more:hover { text-decoration: underline; text-underline-offset: 4px; }
+.more:hover svg { transform: translateX(2px); }
+
+/* ---------- 状态：文字 + 点 ---------- */
+.status { display: inline-flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 500; color: var(--fg-3); white-space: nowrap; }
+.status::before { content: ''; width: 7px; height: 7px; border-radius: 50%; border: 1.5px solid currentColor; }
+.status[data-s='available'] { color: var(--gold-2); }
+.status[data-s='available']::before { background: currentColor; box-shadow: 0 0 0 4px rgb(236 211 164 / 0.14); }
+.status[data-s='testing'] { color: var(--gold); }
+.status[data-s='testing']::before { border-style: dashed; }
+.status[data-s='unavailable'], .status[data-s='planned'] { color: var(--fg-4); }
+
+/* ---------- 进场：只在有 JS 时生效，没有 JS 时内容直接可见 ---------- */
+.js [data-reveal] { opacity: 0; transform: translate3d(0, 48px, 0); filter: blur(10px); transition: opacity 1.2s var(--ease), transform 1.4s var(--ease), filter 1.2s var(--ease); }
+.js [data-reveal='word'] { transform: translate3d(0, 12%, 0) scale(1.06); filter: blur(24px); transition-duration: 2s, 2.4s, 2s; }
+.js [data-reveal].in { opacity: 1; transform: none; filter: none; }
+.js [data-reveal][data-delay='1'] { transition-delay: 120ms; }
+.js [data-reveal][data-delay='2'] { transition-delay: 240ms; }
+.js [data-reveal][data-delay='3'] { transition-delay: 360ms; }
+
+@media (prefers-reduced-motion: reduce) {
+  .js [data-reveal] { transform: none !important; filter: none !important; transition: opacity 400ms linear; }
+  *, *::before, *::after { transition-duration: 1ms !important; animation-duration: 1ms !important; scroll-behavior: auto !important; }
+}
+
+/* ---------- 黑洞背景（首页与文档页共用） ---------- */
+.bh { position: fixed; inset: 0; z-index: 0; pointer-events: none; }
+.bh canvas { width: 100%; height: 100%; }
+/* 底部压暗：保证下半屏文字始终可读，不靠给文字加底色 */
+.bh::after {
+  content: ''; position: absolute; inset: 0;
+  background:
+    linear-gradient(180deg, rgb(0 0 0 / 0.35), transparent 22%, transparent 60%, rgb(0 0 0 / 0.55)),
+    radial-gradient(120% 80% at 50% 50%, transparent 55%, rgb(0 0 0 / 0.5));
+}
+main > * { position: relative; z-index: 1; }
+html.bh-off .bh { background: radial-gradient(60% 40% at 70% 30%, rgb(236 211 164 / 0.16), transparent 70%), #000; }

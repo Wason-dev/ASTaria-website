@@ -1,0 +1,13 @@
+---
+// 代码块 + 复制按钮。按钮在没有 JS 时隐藏，代码本身仍可选中。
+import Icon from './Icon.astro';
+interface Props { id: string; code: string; label?: string }
+const { id, code, label = '复制命令' } = Astro.props;
+---
+
+<div class="code">
+  <pre id={id}>{code}</pre>
+  <button type="button" class="copy" data-copy={id} data-label={label} aria-label={label} hidden>
+    <span class="cp"><Icon name="copy" size={16} /></span><span class="ok"><Icon name="check" size={16} /></span>
+  </button>
+</div>

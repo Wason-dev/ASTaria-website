@@ -1,0 +1,21 @@
+{
+  "name": "astaria-website",
+  "private": true,
+  "type": "module",
+  "version": "0.0.0",
+  "scripts": {
+    "dev": "astro dev",
+    "build": "node scripts/verify-claims.mjs --src && astro build && node scripts/verify-claims.mjs --dist",
+    "preview": "astro preview",
+    "verify:release": "node scripts/verify-release.mjs",
+    "verify:claims": "node scripts/verify-claims.mjs --src --dist",
+    "verify:links": "node scripts/verify-links.mjs"
+  },
+  "dependencies": {
+    "astro": "7.3.8",
+    "geist": "1.7.2",
+    "lucide-static": "1.55.0",
+    "sharp": "0.35.5",
+    "simple-icons": "16.35.0"
+  }
+}

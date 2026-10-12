@@ -1,0 +1,67 @@
+---
+import Icon from './Icon.astro';
+import { release } from '../data/release';
+
+interface Props { current: string }
+const { current } = Astro.props;
+const links = [
+  { href: '/download/', label: '下载', id: 'download' },
+  { href: '/changelog/', label: '更新记录', id: 'changelog' },
+  { href: '/install/', label: '安装', id: 'install' },
+  { href: '/security/', label: '安全与隐私', id: 'security' },
+  { href: '/faq/', label: '常见问题', id: 'faq' },
+];
+---
+
+<header class="nav">
+  <div class="nav-in">
+    <a class="word" href="/" aria-current={current === 'home' ? 'page' : undefined}>ASTaria</a>
+    <nav aria-label="主导航">
+      <ul class="links">
+        {links.map((l) => <li><a href={l.href} aria-current={l.id === current ? 'page' : undefined}>{l.label}</a></li>)}
+      </ul>
+    </nav>
+    <a class="btn btn-primary btn-sm get" href="/download/">下载 {release.displayName}</a>
+    <details class="menu">
+      <summary aria-label="打开导航"><Icon name="menu" size={20} /></summary>
+      <nav class="sheet" aria-label="移动导航">
+        <a href="/" aria-current={current === 'home' ? 'page' : undefined}>概览</a>
+        {links.map((l) => <a href={l.href} aria-current={l.id === current ? 'page' : undefined}>{l.label}</a>)}
+      </nav>
+    </details>
+  </div>
+</header>
+
+<style>
+  .nav {
+    position: fixed; inset: 0 0 auto 0; z-index: 50; height: 52px;
+    background: rgb(0 0 0 / 0.58);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    backdrop-filter: blur(20px) saturate(180%);
+    border-bottom: 1px solid rgb(255 255 255 / 0.06);
+  }
+  .nav-in {
+    display: flex; align-items: center; gap: 32px; height: 100%;
+    max-width: calc(var(--wrap) + var(--pad) * 2); margin: 0 auto; padding: 0 var(--pad);
+  }
+  .word { font-size: 18px; font-weight: 600; letter-spacing: 0.01em; margin-right: auto; }
+  .links { display: flex; gap: 28px; margin: 0; padding: 0; list-style: none; }
+  .links a { font-size: 13px; color: var(--fg-2); transition: color 200ms var(--ease); }
+  .links a:hover, .links a[aria-current='page'] { color: var(--fg); }
+  .get { font-size: 13px; height: 30px; padding: 0 14px; }
+  .menu { display: none; position: relative; }
+  .menu summary { display: grid; place-items: center; width: 40px; height: 40px; list-style: none; cursor: pointer; color: var(--fg-2); }
+  .menu summary::-webkit-details-marker { display: none; }
+  .sheet {
+    position: fixed; left: 0; right: 0; top: 52px; display: grid; padding: 12px var(--pad) 28px;
+    background: rgb(10 10 11 / 0.96); -webkit-backdrop-filter: blur(20px); backdrop-filter: blur(20px);
+    border-bottom: 1px solid var(--line-2);
+  }
+  .sheet a { padding: 12px 0; font-size: 22px; font-weight: 600; color: var(--fg-2); border-bottom: 1px solid var(--line-2); }
+  .sheet a[aria-current='page'] { color: var(--fg); }
+  @media (max-width: 820px) {
+    nav .links { display: none; }
+    .menu { display: block; }
+    .nav-in { gap: 12px; }
+  }
+</style>

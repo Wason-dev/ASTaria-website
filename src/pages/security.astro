@@ -1,0 +1,83 @@
+---
+import Doc from '../layouts/Doc.astro';
+import { repoUrl } from '../data/release';
+---
+
+<Doc
+  page="security"
+  title="安全与隐私"
+  eyebrow="以公开的 SECURITY.md 为准"
+  lead="ASTaria 把数据留在你的电脑上。这里写清楚哪些东西被保护、保护到什么程度，以及哪些事情它做不到。"
+  description="ASTaria 的数据保存位置、API Key 与同步密钥的保护方式、共享文件夹的安全边界、设备撤销与密钥丢失的限制，以及备份建议。"
+  toc={[['local', '数据在哪里'], ['keys', 'API Key'], ['sync-key', '同步密钥'], ['folder', '共享目录'], ['revoke', '撤销设备'], ['lost', '密钥丢失'], ['backup', '备份'], ['network', '联网'], ['packages', '安装包'], ['report', '报告问题']]}
+>
+  <section id="local">
+    <h2>你的数据在哪里</h2>
+    <p>事项、日程、对话、图片和记忆保存在本机的 SQLite 数据库里。macOS 在 <code>~/Library/Application Support/ASTaria</code>，Windows 在 <code>%APPDATA%\ASTaria</code>。</p>
+    <p>使用云端模型时，模型会收到执行这一次请求所需的上下文和所附图片。本机服务只监听回环地址。</p>
+    <p><strong>这个官网不收集、不展示任何用户数据</strong>，没有统计脚本，也不需要登录。</p>
+  </section>
+
+  <section id="keys">
+    <h2>API Key</h2>
+    <p>API Key 在 macOS 上保存在系统钥匙串，在 Windows 上由当前用户的 DPAPI 保护。</p>
+    <p><strong>API Key 不参与设备同步，也不进入 JSON 备份。</strong>换一台设备需要重新填写。</p>
+  </section>
+
+  <section id="sync-key">
+    <h2>同步密钥</h2>
+    <p>同步组使用一把随机生成的 256 位密钥，用来加密和解密写进同步目录的操作文件。密钥在本机由系统加密保存（macOS 钥匙串、Windows DPAPI）；系统加密不可用时，ASTaria 拒绝设置同步，不会退回明文保存。</p>
+    <p>新设备加入时，需要输入原设备导出的 64 位十六进制恢复密钥。<strong>恢复密钥只能保存到同步目录之外</strong>，不要和同步文件放在一起。</p>
+  </section>
+
+  <section id="folder">
+    <h2>共享目录里有什么</h2>
+    <p>同步目录里放的是 AES-256-GCM 加密的操作文件。任务标题、备注、日程和目标内容都在密文里。</p>
+    <p>但是，<strong>共享文件夹本身不是端到端加密存储，也不是零知识云端。</strong>提供共享目录的服务商、管理员和同一目录的其他用户，仍然能看到同步组 ID、密钥指纹、设备标识、文件数量、大小、序号和修改时间。</p>
+    <p>本机数据库、导出的 JSON 备份、你自己导出的恢复密钥都是明文边界，需要你自己保护。不要把它们放进同步目录。</p>
+    <p>同步的内容：任务、分类、课程日程、安排、余时目标和完成记录。<strong>不同步：</strong>API Key、本地模型路径、聊天及图片、记忆、思考过程。</p>
+  </section>
+
+  <section id="revoke">
+    <h2>撤销设备</h2>
+    <p>持有组密钥的设备属于同一个信任范围。<strong>把一台设备移出同步组，不等于撤销它的密钥。</strong></p>
+    <h3>能做到的</h3>
+    <p>在一台可信设备上用新目录建立新的同步组和新密钥，只让保留的设备重新加入，同时收回旧共享目录的访问权限。</p>
+    <h3>做不到的</h3>
+    <p>无法远程抹除旧设备已经拿到的密钥、密文和明文。</p>
+  </section>
+
+  <section id="lost">
+    <h2>同步密钥丢了</h2>
+    <p>如果还有一台可信设备在同步组里，可以从它重新导出恢复密钥。</p>
+    <p>如果所有设备和恢复副本都丢失了密钥，<strong>旧的加密操作无法再解密，也没有找回后门。</strong>可以用一台设备上的本机数据重新建立一个新的同步组。</p>
+  </section>
+
+  <section id="backup">
+    <h2>如何备份</h2>
+    <ul>
+      <li>在设置里导出 JSON 备份。备份包含业务数据和图片，不含 API Key 和同步密钥。</li>
+      <li>另外单独保存同步恢复密钥，放在同步目录之外。</li>
+      <li>备份文件本身是明文，请像对待私人文件一样保护它。</li>
+      <li>更新 ASTaria 之前建议先导出一次备份。</li>
+    </ul>
+  </section>
+
+  <section id="network">
+    <h2>联网搜索与网页读取</h2>
+    <p>联网搜索默认关闭。打开后，普通关键词发送到 DeepSeek 的搜索通道；你给出的完整网址由本机直接访问，不经过关键词搜索。独立的搜索请求不携带课表、聊天或记忆。</p>
+    <p>读取网页时不登录、不执行页面脚本，拒绝本机和私网地址。目标网站能看到这次请求的地址和通常的连接信息。</p>
+  </section>
+
+  <section id="packages">
+    <h2>安装包的信任</h2>
+    <p>Release 里每个安装包都附有 SHA-256，用来确认文件在传输中没有被改动。请只从 <a href={`${repoUrl}/releases`} target="_blank" rel="noopener noreferrer">官方 Releases ↗</a> 获取安装包。</p>
+    <p>应用内更新会用 App 内置的固定公钥验证发布清单的 Ed25519 签名。这和操作系统的代码签名是两件事：<strong>macOS 安装包目前是 ad-hoc 签名、未经 Apple 公证；Windows 安装包没有 Authenticode 代码签名。</strong></p>
+  </section>
+
+  <section id="report">
+    <h2>报告安全问题</h2>
+    <p>请不要把 API Key、数据库、课表或聊天记录贴到公开的 Issue。安全漏洞请优先使用仓库的 <a href={`${repoUrl}/security`} target="_blank" rel="noopener noreferrer">GitHub 私密漏洞报告 ↗</a>。</p>
+    <p>当前处于预发布阶段，只做尽力而为的修复，不承诺安全支持期限或响应时间。</p>
+  </section>
+</Doc>

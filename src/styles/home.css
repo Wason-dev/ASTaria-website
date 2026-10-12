@@ -1,0 +1,90 @@
+/* 首页。黑洞沿一条弧线从右侧经上方移到左侧；每段文字落在黑洞的对面：
+   data-place = left（黑洞在右）· bottom（黑洞在上方）· right（黑洞在左），由 scripts/blackhole.ts 写入。 */
+
+.col {
+  width: min(46vw - var(--pad), 560px);
+  margin-left: max(var(--pad), calc((100vw - 1360px) / 2 + var(--pad)));
+}
+[data-place='right'] .col { margin-left: auto; margin-right: max(var(--pad), calc((100vw - 1360px) / 2 + var(--pad))); }
+[data-place='bottom'] { align-items: flex-end !important; padding-bottom: 12vh; }
+[data-place='bottom'] .col { width: min(100% - var(--pad) * 2, 760px); margin: 0 auto; text-align: center; }
+[data-place='bottom'] .body, [data-place='bottom'] .intro { margin-inline: auto; }
+[data-place='bottom'] .readout, [data-place='bottom'] .cta { justify-content: center; }
+[data-place='bottom'] .vows { text-align: left; }
+/* 量文字位置时去掉进场位移 */
+html.measuring [data-reveal] { transform: none !important; transition: none !important; }
+
+.tag { display: flex; gap: 12px; align-items: baseline; color: var(--fg-3); font-size: 13px; letter-spacing: 0.04em; }
+.tag .mono { color: var(--gold-2); }
+.num { color: var(--gold-2); font-size: 13px; letter-spacing: 0.1em; }
+
+/* ---------- 片头 ---------- */
+.hero { min-height: 100svh; display: flex; align-items: center; padding: 120px 0 80px; }
+.word {
+  margin-top: 28px;
+  font-size: clamp(64px, 7.4vw, 124px);
+  line-height: 0.92;
+  letter-spacing: -0.045em;
+  font-weight: 650;
+  background: linear-gradient(180deg, #fffaf1 10%, #e8d6b2 100%);
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+}
+.slogan { margin-top: 22px; font-size: clamp(22px, 2vw, 30px); font-weight: 500; color: var(--fg); letter-spacing: 0.04em; }
+.intro { margin-top: 28px; max-width: 26em; color: var(--fg-3); font-size: 17px; line-height: 1.7; }
+.cta { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 44px; }
+.meta { margin-top: 28px; color: var(--fg-4); font-size: 13px; }
+.meta a, .fine a { color: var(--fg-2); text-decoration: underline; text-underline-offset: 3px; text-decoration-color: rgb(255 255 255 / 0.25); }
+.meta a:hover, .fine a:hover { color: var(--fg); }
+
+/* ---------- 章节：一屏只放一段文字 ---------- */
+.chapter { min-height: 100svh; display: flex; align-items: center; padding: 18vh 0; }
+.title {
+  margin-top: 26px;
+  font-size: clamp(38px, 4.2vw, 68px);
+  line-height: 1.08;
+  letter-spacing: -0.025em;
+  font-weight: 600;
+}
+.body { margin-top: 30px; max-width: 25em; color: var(--fg-3); font-size: 17px; line-height: 1.75; }
+.readout { display: inline-flex; margin: 40px 0 0; border-radius: 20px; }
+.readout div { padding: 14px 22px; display: grid; gap: 4px; }
+.readout div + div { border-left: 1px solid rgb(255 255 255 / 0.1); }
+.readout dt { color: var(--fg-4); font-size: 12px; }
+.readout dd { margin: 0; font-size: 18px; color: var(--fg); }
+
+/* ---------- 画面 ---------- */
+.plate { min-height: 120svh; padding: 22vh var(--pad) 12vh; display: flex; align-items: center; justify-content: center; }
+.plate .slab { width: min(100%, 1180px); }
+.plate.duo { display: grid; grid-template-columns: 1fr; justify-items: center; }
+.plate.duo .slab { width: min(86%, 1000px); }
+.plate.duo .second { margin-top: -22%; margin-left: 18%; }
+.plate.duo .slab:first-child { margin-right: 18%; position: relative; z-index: 1; }
+
+/* ---------- 数据 ---------- */
+.vows { list-style: none; margin: 44px 0 0; padding: 0; }
+.vows li { padding: 18px 0; border-top: 1px solid rgb(255 255 255 / 0.1); color: var(--fg-2); font-size: 16px; line-height: 1.65; }
+.vows li:last-child { border-bottom: 1px solid rgb(255 255 255 / 0.1); }
+.vow .more { margin-top: 36px; }
+
+/* ---------- 俯冲 ---------- */
+.dive { height: 170svh; }
+.void { height: 110svh; display: flex; align-items: center; justify-content: center; }
+.void-line { opacity: 0; color: rgb(245 242 236 / 0.82); font-size: clamp(18px, 1.6vw, 24px); letter-spacing: 0.6em; margin-right: -0.6em; font-weight: 300; }
+.cut { height: 60svh; }
+
+/* ---------- 收尾 ---------- */
+.finale { min-height: 100svh; }
+.plats { display: flex; flex-wrap: wrap; gap: 10px 28px; margin: 44px 0 0; padding: 22px 0 0; border-top: 1px solid rgb(255 255 255 / 0.1); list-style: none; }
+.plats li { display: flex; align-items: center; gap: 10px; }
+.pn { color: var(--fg); font-size: 15px; font-weight: 600; }
+.finale .fine { margin-top: 22px; }
+
+/* ---------- 竖屏：黑洞在上，文字在下 ---------- */
+@media (max-aspect-ratio: 19/20) {
+  .col { width: auto; margin: 0 var(--pad); }
+  .hero { align-items: flex-end; padding: 52svh 0 64px; }
+  .chapter { align-items: flex-end; min-height: 100svh; padding: 52svh 0 10vh; }
+  .vow, .finale { padding-top: 46svh; }
+  .plate { min-height: 0; padding: 40svh var(--pad) 12vh; }
+  .plate.duo .slab { width: 92%; }
+}

@@ -1,0 +1,61 @@
+---
+import Doc from '../layouts/Doc.astro';
+import { release, releasesIndexUrl } from '../data/release';
+
+const qa: Array<{ id: string; q: string; a: string[] }> = [
+  { id: 'platforms', q: 'ASTaria 支持哪些平台？', a: [
+    'macOS 13 及以上的 Apple Silicon（M 系列芯片）Mac，以及 Windows x64 试验版。Intel Mac、Android、iOS 目前都没有安装包。',
+    `当前公开版本是 ${release.displayName}（${release.version}），属于预发布。` ] },
+  { id: 'download', q: 'macOS 和 Windows 怎么下载？', a: [
+    '在<a href="/download/">下载页</a>点对应平台的按钮，文件直接来自 GitHub Releases。macOS 是一个 DMG；Windows 有安装程序和便携包两种，任选其一。',
+    '下载后请核对 SHA-256。安装步骤见<a href="/install/">安装说明</a>。' ] },
+  { id: 'mobile', q: 'Android 和 iOS 现在是什么状态？', a: [
+    '都还没有版本，也没有可安装的文件。',
+    '如果将来对外测试 iOS 版，会通过 TestFlight。TestFlight 是有有效期的测试分发，不是公开的正式版；官网不会提供可以直接安装的 IPA。' ] },
+  { id: 'data', q: '数据保存在哪里？', a: [
+    '都在你自己的电脑上：macOS 在 <code>~/Library/Application Support/ASTaria</code>，Windows 在 <code>%APPDATA%\\ASTaria</code>。ASTaria 没有自己的云端服务。' ] },
+  { id: 'sync', q: '多设备同步是怎么工作的？', a: [
+    '每台设备保留自己的数据库。你选一个各设备都能访问的文件夹，ASTaria 只往里面写加密的操作文件，其他设备读取并合并。同一字段在两边同时被改时，需要你确认。',
+    '同步任务、分类、课程日程、安排、余时目标和完成记录。聊天、图片、记忆和 API Key 不同步。' ] },
+  { id: 'syncthing', q: '共享文件夹和 Syncthing 有什么区别？', a: [
+    '对 ASTaria 来说两者是同一套加密操作格式，区别只在文件怎么在设备之间传递：共享文件夹可以是云盘的本地同步目录或 NAS 挂载目录；Syncthing 目录需要你先自己安装并配好 Syncthing。',
+    'ASTaria 不会安装或配置 Syncthing，也不改防火墙。通过 Syncthing 的实际跨机传送尚未验收。无论哪种方式，共享文件夹本身都不是端到端加密存储。' ] },
+  { id: 'api-key', q: 'API Key 存在哪里？换设备要重新填吗？', a: [
+    '要重新填。API Key 保存在本机的系统钥匙串（macOS）或 DPAPI（Windows）里，不进入同步目录，也不进入 JSON 备份。每台设备需要单独填写。' ] },
+  { id: 'revoke', q: '怎么更换或撤销一台设备？', a: [
+    '把设备移出同步组并不会撤销它的密钥。要真正撤销，需要在一台可信设备上用新目录建立新的同步组和新密钥，只让保留的设备重新加入，并收回旧目录的访问权限。',
+    '旧设备已经拿到的内容无法远程抹除。详见<a href="/security/#revoke">安全与隐私</a>。' ] },
+  { id: 'lost-key', q: '忘记同步密钥怎么办？', a: [
+    '如果还有一台可信设备在同步组里，可以从它重新导出恢复密钥。',
+    '如果所有设备和恢复副本都丢了密钥，旧的加密操作无法再解密，没有找回后门。可以用某台设备上的本机数据重新建立同步组。' ] },
+  { id: 'update', q: '怎么更新，怎么回退？', a: [
+    'macOS 版和 Windows 标准安装版在「设置 → 通用 → App 更新」中检查和安装，安装前会校验文件与签名清单，启动失败时会尝试回退。Windows 便携版需要手动更新。',
+    `需要退回旧版本时，之前的每个版本都保留在 <a href="${releasesIndexUrl}" target="_blank" rel="noopener noreferrer">GitHub Releases ↗</a>。更新前建议先导出备份。` ] },
+  { id: 'smartscreen', q: '为什么 Windows 会出现安全提示？', a: [
+    'Windows 安装包没有做 Authenticode 代码签名，系统无法验证发布者，所以 SmartScreen 可能提示风险。',
+    '请确认文件来自官方 Release，并且 SHA-256 与<a href="/download/#windows">下载页</a>公布的值完全一致，再决定是否继续。macOS 上的「无法验证开发者」提示也是同样的原因：当前是 ad-hoc 签名，未经 Apple 公证。' ] },
+  { id: 'slow', q: 'GitHub Release 下载很慢怎么办？', a: [
+    '目前安装包只在 GitHub Releases 发布，没有国内镜像或下载代理，无法保证每个网络环境下的速度。可以稍后重试或换一个网络。',
+    '无论从哪里拿到文件，都请核对 SHA-256 与官方公布的值一致。' ] },
+];
+---
+
+<Doc page="faq" title="常见问题" lead="找不到答案的话，可以到 GitHub 提交 Issue。请不要在 Issue 里贴 API Key、课表或私密聊天。" description="ASTaria 常见问题：支持平台、下载、数据位置、多设备同步、API Key、设备撤销、同步密钥、更新与回退、系统安全提示。">
+  <section aria-label="问题列表">
+    {qa.map((x) => (
+      <details class="qa" id={x.id}>
+        <summary>
+          <span>{x.q}</span>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="m6 9 6 6 6-6" /></svg>
+        </summary>
+        <div>{x.a.map((p) => <p set:html={p} />)}</div>
+      </details>
+    ))}
+  </section>
+  <script>
+    // 带锚点打开时，直接展开对应问题。
+    const open = () => { const el = location.hash && document.querySelector<HTMLDetailsElement>(`details${location.hash}`); if (el) el.open = true; };
+    open();
+    addEventListener('hashchange', open);
+  </script>
+</Doc>

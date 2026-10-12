@@ -1,0 +1,64 @@
+---
+// 说明类页面：背后同样是实时黑洞。每页一个机位，标题处黑洞在右上方清晰可见，
+// 往下读时镜头缓缓拉远、压暗，正文落在一块玻璃阅读面上。
+import Base from './Base.astro';
+import '../styles/doc.css';
+
+interface Props {
+  title: string;
+  description: string;
+  page: string;
+  eyebrow?: string;
+  lead?: string;
+  toc?: Array<[string, string]>;
+}
+const { title, description, page, eyebrow, lead, toc } = Astro.props;
+
+// 每页一个起始方位：同一套构图（黑洞在右，文字在左），只是看黑洞的角度不同。
+const YAW: Record<string, number> = { download: 0.3, changelog: 1.2, install: 2.1, security: 3.0, faq: 3.9, '404': -0.5 };
+const yaw = YAW[page] ?? 0;
+---
+
+<Base title={title} description={description} page={page}>
+  <div class="bh" id="bh" aria-hidden="true" data-yaw={yaw}></div>
+  <article class="doc">
+    <header class="doc-head wrap">
+      {eyebrow && <p class="eyebrow">{eyebrow}</p>}
+      <h1 class="t-1">{title}</h1>
+      {lead && <p class="lead">{lead}</p>}
+      {toc && (
+        <nav class="toc" aria-label="本页目录">
+          {toc.map(([id, label]) => <a href={`#${id}`}>{label}</a>)}
+        </nav>
+      )}
+    </header>
+    <div class="doc-body wrap">
+      <div class="sheet glass" data-glass>
+        <slot />
+      </div>
+    </div>
+  </article>
+  <script>
+    import { mountBlackHole } from '../scripts/blackhole';
+    import { mountGlass } from '../scripts/glass';
+    const bh = document.getElementById('bh')!;
+    if (!mountBlackHole(bh, { span: 0.45 })) document.documentElement.classList.add('bh-off');
+    mountGlass();
+    // 复制按钮：复制目标元素的文本，图标换成对勾 1.6 秒。没有 JS 时文本本身仍可选中复制。
+    document.querySelectorAll<HTMLButtonElement>('[data-copy]').forEach((b) => {
+      b.hidden = false;
+      b.addEventListener('click', async () => {
+        const el = document.getElementById(b.dataset.copy!);
+        if (!el) return;
+        try {
+          await navigator.clipboard.writeText(el.textContent!.trim());
+          b.dataset.done = 'true';
+          b.setAttribute('aria-label', '已复制');
+          setTimeout(() => { delete b.dataset.done; b.setAttribute('aria-label', b.dataset.label!); }, 1600);
+        } catch {
+          getSelection()?.selectAllChildren(el);
+        }
+      });
+    });
+  </script>
+</Base>

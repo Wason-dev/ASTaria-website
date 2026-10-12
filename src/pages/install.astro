@@ -1,0 +1,105 @@
+---
+import Doc from '../layouts/Doc.astro';
+import Code from '../components/Code.astro';
+import { release, releaseUrl, releasesIndexUrl } from '../data/release';
+const mac = release.platforms[0].assets[0].fileName;
+const [setup, portable] = release.platforms[1].assets.map((a) => a.fileName);
+const unquarantine = `/usr/bin/codesign --verify --deep --strict --verbose=2 "/Applications/ASTaria.app" && \\
+/usr/bin/xattr -dr com.apple.quarantine "/Applications/ASTaria.app" && \\
+/usr/bin/open "/Applications/ASTaria.app"`;
+---
+
+<Doc
+  page="install"
+  title="安装 ASTaria"
+  eyebrow={`${release.displayName} · ${release.version}`}
+  lead="macOS 使用 ad-hoc 签名、未经 Apple 公证；Windows 是未做代码签名的试验版。下面写清楚每一步，以及系统会提示什么、为什么。"
+  description="ASTaria 在 macOS、Windows 上的安装方式、首次启动、数据目录、同步目录、更新与回退，以及当前的签名状态与系统安全提示。"
+  toc={[['macos', 'macOS'], ['windows', 'Windows'], ['mobile', 'Android 与 iOS'], ['first-run', '首次启动'], ['data', '数据目录'], ['sync', '同步目录'], ['update', '更新与回退'], ['trouble', '常见问题']]}
+>
+  <section id="macos">
+    <h2>macOS</h2>
+    <p>需要 macOS 13 或更新版本，Apple Silicon（M 系列芯片）。<strong>不支持 Intel Mac。</strong>ASTaria 目前不通过 Mac App Store 分发。</p>
+    <ol>
+      <li>退出正在运行的旧版 ASTaria。</li>
+      <li>打开 <code>{mac}</code>。磁盘映像里只有 ASTaria.app、指向「应用程序」的快捷方式和安装说明。</li>
+      <li>把 ASTaria.app 拖到「Applications」快捷方式上。</li>
+      <li>从「应用程序」打开 ASTaria，之后可以推出磁盘映像。</li>
+    </ol>
+    <h3>如果提示「无法验证开发者」</h3>
+    <p>先正常尝试打开一次。然后到「系统设置 → 隐私与安全性」，找到 ASTaria，选择「仍要打开」并按提示确认。</p>
+    <p>若仍被下载隔离标记拦截，先确认安装包来自 <a href={releaseUrl} target="_blank" rel="noopener noreferrer">官方 Release ↗</a> 且 SHA-256 一致、App 已移到「应用程序」，再在「终端」运行：</p>
+    <Code id="mac-q" code={unquarantine} />
+    <p>第一行检查 App 签名的完整性，失败时不会继续；第二行只移除这个 App 的隔离标记，不关闭全系统的安全设置；第三行启动 App。不需要 sudo，不要重新签名，也不要关闭 Gatekeeper。这些命令不能修复崩溃、芯片不兼容或文件损坏。</p>
+    <div class="note"><strong>签名状态：</strong>当前安装包是 ad-hoc 签名，未经 Apple 公证。ad-hoc 签名不能证明发布者身份。正式版的目标是 Apple Developer ID Application 签名，并完成 Hardened Runtime、公证与 staple；这些工作尚未完成。</div>
+  </section>
+
+  <section id="windows">
+    <h2>Windows</h2>
+    <p>提供两种 x64 包，选一种即可。</p>
+    <h3>安装程序</h3>
+    <p><code>{setup}</code>：双击运行，按提示安装，之后从开始菜单启动。安装到当前用户目录，不需要管理员权限。</p>
+    <h3>便携包</h3>
+    <p><code>{portable}</code>：完整解压到一个新目录，再运行其中的 <code>ASTaria.exe</code>。不要只单独拿出 EXE。</p>
+    <h3>为什么会看到 SmartScreen 提示</h3>
+    <p>Windows 安装包<strong>没有做 Authenticode 代码签名</strong>，所以系统可能提示「Windows 已保护你的电脑」或类似信息。这是因为系统无法验证发布者，不代表文件一定有问题，也不代表它一定没问题。确认文件来自 <a href={releaseUrl} target="_blank" rel="noopener noreferrer">官方 Release ↗</a>，并且 SHA-256 与 <a href="/download/#windows">下载页</a> 公布的值一致，再决定是否继续。</p>
+    <div class="note"><strong>验收范围：</strong>Windows 10 有历史测试记录；本版成品的实机安装与交互、Windows 11、真实自动升级与失败回退都尚未验收。切页与展开聊天仍有卡顿反馈。Windows 目前只有 App 内提醒，没有系统弹窗提醒。</div>
+  </section>
+
+  <section id="mobile">
+    <h2>Android 与 iOS</h2>
+    <p>目前没有 Android 或 iOS 版本，也没有可安装的文件。</p>
+    <p>如果将来对外测试 iOS 版，会通过 TestFlight 分发。TestFlight 是有有效期的测试分发，不等于公开的正式版；官网不会提供可以直接安装的 IPA 文件。</p>
+  </section>
+
+  <section id="first-run">
+    <h2>首次启动</h2>
+    <p>首次启动时选择析熙的个性、主题、玻璃材质，以及帧率与画质。「ASTaria 推荐」从最高画质开始，持续负载过高时自动下调；也可以手动固定。</p>
+    <p>模型连接可以跳过，稍后在设置里填写 API Key。之后录入课程、事项和可用时间。安装包里不含任何人的课表、聊天、密钥或数据库。</p>
+  </section>
+
+  <section id="data">
+    <h2>数据目录</h2>
+    <dl class="kv">
+      <dt>macOS</dt><dd><code>~/Library/Application Support/ASTaria</code></dd>
+      <dt>Windows</dt><dd><code>%APPDATA%\ASTaria</code></dd>
+      <dt>Windows 程序</dt><dd><code>%LOCALAPPDATA%\Programs\ASTaria</code></dd>
+    </dl>
+    <p>Windows 的安装版与便携版共用同一份用户数据；卸载会保留用户数据。更新不会覆盖本机数据，但更新前仍建议在设置里导出备份。</p>
+  </section>
+
+  <section id="sync">
+    <h2>同步目录</h2>
+    <p>在「设置 → 数据 → 跨设备同步」中，选择一个普通共享文件夹，或一个已经由 Syncthing 共享的目录。</p>
+    <ul>
+      <li>新建同步组时使用一个新目录。原设备把恢复密钥导出到同步目录之外；新设备选择同一目录并输入这把 64 位密钥加入。</li>
+      <li>每台设备保留自己的数据库，目录里只放加密的操作文件。不要复制正在运行的数据库文件。</li>
+      <li>ASTaria 不会安装或配置 Syncthing，也不会修改防火墙或配对。实际通过 Syncthing 跨机传送尚未验收。</li>
+    </ul>
+    <p>同步什么、不同步什么、密钥丢了会怎样，见 <a href="/security/">安全与隐私</a>。</p>
+  </section>
+
+  <section id="update">
+    <h2>更新与回退</h2>
+    <p>macOS 版和 Windows 标准安装版可以在「设置 → 通用 → App 更新」中检查、下载并安装更新。安装前会校验文件大小、SHA-256，并用 App 内置的公钥验证发布清单的签名；启动没有成功时会尝试回退到原来的版本。</p>
+    <ul>
+      <li>macOS 的 App 必须放在可写的位置，不能直接在磁盘映像里更新。</li>
+      <li>Windows 便携版和其他非标准安装位置需要手动更新：退出旧版后，运行新的安装程序或解压新的便携包。</li>
+      <li>BetaX（0.1.0-beta.10）的 Windows 版没有应用内更新，第一次升级必须手动安装。</li>
+      <li>如果自动回退也失败，App 会提示需要手动恢复。之前的每个版本都保留在 <a href={releasesIndexUrl} target="_blank" rel="noopener noreferrer">GitHub Releases ↗</a>。更新不会覆盖本机数据，但恢复前请先导出备份。</li>
+    </ul>
+    <p>发布清单的签名验证和操作系统的代码签名是两回事：前者证明清单来自持有固定私钥的维护者，不代表安装包带有系统可验证的发布者身份。</p>
+  </section>
+
+  <section id="trouble">
+    <h2>常见问题</h2>
+    <h3>打不开，或提示文件已损坏</h3>
+    <p>先核对 SHA-256。不一致就重新下载；一致的话按上面 macOS 或 Windows 的说明处理系统提示。</p>
+    <h3>Mac 上提示芯片不兼容</h3>
+    <p>当前只支持 Apple Silicon，Intel Mac 无法运行。</p>
+    <h3>更新提示需要可写的目录</h3>
+    <p>把 ASTaria.app 移到「应用程序」后再检查更新；不要在磁盘映像里直接运行。</p>
+    <h3>检查更新失败</h3>
+    <p>可以直接到 <a href={releasesIndexUrl} target="_blank" rel="noopener noreferrer">GitHub Releases ↗</a> 手动下载。</p>
+  </section>
+</Doc>

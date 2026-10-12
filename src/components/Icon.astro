@@ -1,0 +1,31 @@
+---
+// 构建期内联 Lucide 图标（ISC），不进运行时。描边 1.5px，与 ASTaria 应用笔画接近。
+// GitHub 标记来自 Simple Icons（CC0）。图标一律 aria-hidden，语义由旁边的文字承担。
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
+import { siGithub } from 'simple-icons';
+
+interface Props {
+  name: string;
+  size?: number;
+  class?: string;
+}
+const { name, size = 18, class: cls = '' } = Astro.props;
+
+let svg: string;
+if (name === 'github') {
+  svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="${size}" height="${size}" fill="currentColor" aria-hidden="true" focusable="false" class="${cls}"><path d="${siGithub.path}"/></svg>`;
+} else {
+  const raw = readFileSync(join(process.cwd(), 'node_modules/lucide-static/icons', `${name}.svg`), 'utf8');
+  svg = raw
+    .replace(/<!--[\s\S]*?-->/g, '')
+    .replace(/class="[^"]*"/, `class="${cls}" aria-hidden="true" focusable="false"`)
+    .replace(/width="24"/, `width="${size}"`)
+    .replace(/height="24"/, `height="${size}"`)
+    .replace(/stroke-width="2"/, 'stroke-width="1.5"')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+---
+
+<Fragment set:html={svg} />
