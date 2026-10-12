@@ -146,7 +146,13 @@
 .card .more { margin-top: 26px; }
 
 /* ---------- 越过视界 ---------- */
-.dive { height: 180svh; }
+/* 俯冲：一行字定在画面中央，阴影在它身后长大，把整屏吞没 */
+.dive { height: 150svh; }
+.dive-line {
+  position: sticky; top: calc(50svh - 0.6em); margin: 0; text-align: center;
+  font-size: clamp(30px, 3.6vw, 56px); font-weight: 300; letter-spacing: 0.32em; margin-right: -0.32em;
+  color: rgb(245 242 236 / 0.92); text-shadow: 0 2px 40px rgb(0 0 0 / 0.9);
+}
 .void { height: 110svh; display: flex; align-items: center; justify-content: center; }
 .void-line { opacity: 0; color: rgb(245 242 236 / 0.85); font-size: clamp(18px, 1.6vw, 24px); letter-spacing: 0.6em; margin-right: -0.6em; font-weight: 300; }
 
