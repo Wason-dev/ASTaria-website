@@ -14,13 +14,10 @@ interface Props {
 }
 const { title, description, page, eyebrow, lead, toc } = Astro.props;
 
-// 每页一个起始方位：同一套构图（黑洞在右，文字在左），只是看黑洞的角度不同。
-const YAW: Record<string, number> = { download: 0.3, changelog: 1.2, install: 2.1, security: 3.0, faq: 3.9, '404': -0.5 };
-const yaw = YAW[page] ?? 0;
 ---
 
 <Base title={title} description={description} page={page}>
-  <div class="bh" id="bh" aria-hidden="true" data-yaw={yaw}></div>
+  <div class="bh" id="bh" aria-hidden="true"></div>
   <article class="doc">
     <header class="doc-head wrap">
       {eyebrow && <p class="eyebrow">{eyebrow}</p>}
