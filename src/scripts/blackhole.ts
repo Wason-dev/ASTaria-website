@@ -1,45 +1,36 @@
-// 背景黑洞：一条连续的接近轨道。所有量都只朝一个方向变化，没有来回。
+// 背景黑洞：一条完整的飞行路线，随滚动推进。
 //
-//   距离：按几何级数匀速缩短（一直在靠近）
-//   大小：阴影半径随进度单调变大（只放大，不缩回）
-//   方位：匀速环绕
-//   仰角：一个来回——侧视 → 斜上方 → 侧视
-//   位置：开场在右侧（左边是标题），随后滑到画面中央并停在那里，之后不再横移
+//   远处侧视 → 一边靠近一边环绕，抬到斜上方 → 压低掠过盘面 → 俯冲进阴影，整屏变黑 → 远景重新亮起
 //
-// 章节里，截图板正好挡在黑洞前面，黑洞的光从玻璃四周和背后透出来。
-// 最后越过视界：阴影吞没整屏，再在黑暗中切回远景。
+// 黑洞始终在画面中央附近，不躲任何东西；内容放在玻璃卡片上，玻璃负责可读性。
+// 距离只减不增、阴影只大不小、方位匀速转动、仰角只有一个起伏。所有量都只朝一个方向走。
 import { VERT, FRAG } from './blackhole-shader';
 
 interface Pose { dist: number; incl: number; yaw: number; fov: number; sx: number; sy: number; expo: number }
 
-const D0 = 40, D1 = 17;             // 起点、终点距离（rs）
-const YAW0 = -0.55, YAW_SPAN = 2.2; // 环绕总角度
-const R0 = 0.10, R1 = 0.2;          // 阴影半径（屏高）：起点 → 终点，单调增加
+const D0 = 42, D1 = 16;                // 接近段：起点、终点距离（rs）
+const YAW0 = -0.6, YAW_SPAN = 2.4;     // 环绕总角度
+const R0 = 0.13, R1 = 0.3;             // 阴影半径（屏高），只增不减
 
 const smooth = (a: number, b: number, x: number) => { const t = Math.min(Math.max((x - a) / (b - a), 0), 1); return t * t * (3 - 2 * t); };
+const clamp01 = (x: number) => Math.min(Math.max(x, 0), 1);
 const shadowTan = (d: number) => Math.tan(Math.asin(Math.min((2.598 * Math.sqrt(Math.max(1 - 1 / d, 0))) / d, 0.999)));
+const logLerp = (a: number, b: number, t: number) => Math.exp(Math.log(a) + (Math.log(b) - Math.log(a)) * t);
 
-/** 轨道：进度 t ∈ [0,1]，arrive ∈ [0,1] 是从开场位置滑到中央的程度。 */
-function orbit(t: number, arrive: number, a: number): Pose {
-  const portrait = a < 0.95;
+/** 接近段：t ∈ [0,1]。 */
+function approach(t: number): Pose {
   const dist = D0 * Math.pow(D1 / D0, t);
   const R = R0 + (R1 - R0) * smooth(0, 1, t);
-  const hump = Math.sin(Math.PI * smooth(0, 1, t));
-  const k = smooth(0, 1, arrive);
-  const sx0 = portrait ? 0 : Math.min(a * 0.25, 0.46);
-  const sy0 = portrait ? 0.24 : 0.02;
+  // 仰角一个起伏：侧视 → 斜上方（t≈0.45 最高）→ 压低掠过
+  const incl = 0.07 + 0.55 * Math.pow(Math.sin(Math.PI * Math.min(t / 0.9, 1)), 1.5);
   return {
-    dist,
-    incl: 0.08 + 0.42 * hump,
-    yaw: YAW0 + YAW_SPAN * t,
-    fov: shadowTan(dist) / R,
-    sx: sx0 * (1 - k),
-    sy: sy0 + (portrait ? 0 : -0.02) * k,
+    dist, incl, yaw: YAW0 + YAW_SPAN * t, fov: shadowTan(dist) / R,
+    sx: 0, sy: -0.14 * (1 - smooth(0, 0.35, t)), // 开场黑洞略低，标题在它上方；随后升到正中
     expo: 1.05,
   };
 }
 
-export function mountBlackHole(host: HTMLElement, opts: { span?: number; stay?: boolean } = {}) {
+export function mountBlackHole(host: HTMLElement, opts: { span?: number } = {}) {
   const still = matchMedia('(prefers-reduced-motion: reduce)').matches;
   const canvas = document.createElement('canvas');
   const gl = canvas.getContext('webgl2', { antialias: false, alpha: false, powerPreference: 'high-performance' });
@@ -85,57 +76,115 @@ export function mountBlackHole(host: HTMLElement, opts: { span?: number; stay?: 
 
   canvas.setAttribute('aria-hidden', 'true');
   host.append(canvas);
-  let W = innerWidth, H = innerHeight, a = W / H;
+  let W = innerWidth, H = innerHeight;
   const size = () => {
-    W = innerWidth; H = innerHeight; a = W / H;
+    W = innerWidth; H = innerHeight;
     const k = Math.min(devicePixelRatio, 2) * (W < 760 ? 0.6 : 0.72);
     canvas.width = Math.round(W * k);
     canvas.height = Math.round(H * k);
     gl.viewport(0, 0, canvas.width, canvas.height);
   };
-  size();
 
-  // ---------- 滚动 → 轨道 ----------
+  // ---------- 滚动 → 路线 ----------
   const span = opts.span ?? 1;
-  let arriveEnd = 1, diveTop = 1, voidAt = 2, revealAt = 3, hasDive = false;
+  let diveTop = 1, voidAt = 2, revealAt = 3, hasDive = false;
   const measure = () => {
     size();
     const abs = (el: Element | null) => (el ? el.getBoundingClientRect().top + scrollY : 0);
-    const first = document.querySelector('[data-cam="first"]');
     const dive = document.querySelector('[data-cam="dive"]'), vd = document.querySelector('[data-cam="void"]'), rv = document.querySelector('[data-cam="reveal"]');
     hasDive = !!(dive && vd && rv);
-    diveTop = hasDive ? abs(dive) - H : Math.max(document.documentElement.scrollHeight - H, 1);
+    diveTop = hasDive ? abs(dive) - H * 0.6 : Math.max(document.documentElement.scrollHeight - H, 1);
     voidAt = abs(vd) - H * 0.1;
-    revealAt = abs(rv) - H * 0.35;
-    // 开场到第一章：黑洞从右侧滑到中央，在第一章的截图到达之前就位
-    arriveEnd = opts.stay ? Infinity : first ? Math.max(abs(first) - H * 0.2, H * 0.5) : H;
+    revealAt = abs(rv) - H * 0.4;
   };
   measure();
   addEventListener('resize', measure);
   addEventListener('load', measure);
   document.fonts?.ready.then(measure);
 
-  const approach = (y: number) => orbit((Math.min(Math.max(y / Math.max(diveTop, 1), 0), 1)) * span, Math.min(Math.max(y / arriveEnd, 0), 1), a);
   const poseAt = (y: number): Pose => {
-    if (!hasDive || y <= diveTop) return approach(y);
-    const end = approach(diveTop);
-    const rate = (YAW_SPAN * span) / Math.max(diveTop, 1); // 方位角保持同样的转速穿过视界
+    const end = approach(span);
+    if (!hasDive || y <= diveTop) return approach(clamp01(y / Math.max(diveTop, 1)) * span);
+    const rate = (YAW_SPAN * span) / Math.max(diveTop, 1); // 穿过视界时保持同样的转速
     if (y < revealAt) {
-      const u = Math.min((y - diveTop) / Math.max(voidAt - diveTop, 1), 1);
+      // 俯冲：继续靠近，镜头转向正对黑洞，阴影长大到盖满整屏
+      const u = clamp01((y - diveTop) / Math.max(voidAt - diveTop, 1));
       const e = 0.3 * u + 0.7 * u * u * (3 - 2 * u);
-      const vd = 3.2, vf = (shadowTan(vd) / Math.hypot(a / 2, 0.5)) * 0.85;
+      const vd = 3.2, vf = (shadowTan(vd) / Math.hypot(W / H / 2, 0.5)) * 0.85;
       return {
-        dist: Math.exp(Math.log(end.dist) + (Math.log(vd) - Math.log(end.dist)) * e),
-        fov: Math.exp(Math.log(end.fov) + (Math.log(vf) - Math.log(end.fov)) * e),
-        incl: end.incl + (1.36 - end.incl) * smooth(0.2, 1, u),
-        sx: end.sx * (1 - smooth(0, 0.8, u)), sy: end.sy * (1 - smooth(0, 0.8, u)),
-        yaw: end.yaw + rate * (y - diveTop), expo: 1.05,
+        dist: logLerp(end.dist, vd, e), fov: logLerp(end.fov, vf, e),
+        incl: end.incl + (1.36 - end.incl) * smooth(0.25, 1, u),
+        sx: 0, sy: end.sy * (1 - u), yaw: end.yaw + rate * (y - diveTop), expo: 1.05,
       };
     }
-    // 切镜：在黑暗里换到与开场呼应的远景（黑洞在右，文字在左），缓缓推近、亮起
-    const o = orbit(0, 0, a), u = smooth(revealAt, revealAt + H * 0.7, y);
-    return { ...o, dist: o.dist * (1.4 - 0.4 * u), yaw: YAW0 + YAW_SPAN + 1.2 + rate * (y - revealAt), expo: 1.15 * u };
+    // 远景：在黑暗里换镜头，缓缓推近、亮起
+    const o = approach(0), u = smooth(revealAt, revealAt + H * 0.8, y);
+    return { ...o, dist: o.dist * (1.35 - 0.35 * u), yaw: YAW0 + YAW_SPAN + 1.3 + rate * (y - revealAt) * 0.5, expo: 1.15 * u };
   };
 
-  /*__RENDER__*/
+  // ---------- 渲染 ----------
+  const shadowEls = [...document.querySelectorAll<HTMLElement>('[data-in-shadow]')];
+  const t0 = performance.now();
+  // 只平滑滚动位置这一个量：临界阻尼弹簧，平稳到位，不回弹
+  let y = scrollY, vy = 0, last = t0;
+  const OMEGA = 3.0;
+  const frame = (now: number) => {
+    requestAnimationFrame(frame);
+    const dt = Math.min((now - last) / 1000, 0.05);
+    last = now;
+    if (still) y = scrollY;
+    else { vy += (-OMEGA * OMEGA * (y - scrollY) - 2 * OMEGA * vy) * dt; y += vy * dt; }
+    const p = poseAt(y);
+    const e = still ? 1 : 1 - Math.pow(1 - Math.min((now - t0) / 3000, 1), 3); // 开场：从更远处推近、亮起
+    const shown = { ...p, dist: p.dist * (1 + 0.35 * (1 - e)), expo: p.expo * e };
+    draw(shown, still ? 12 : now / 1000, canvas.width, canvas.height);
+    if (shadowEls.length) {
+      // 阴影里的字：被阴影完全包住时才显现
+      const cx = W / 2 + p.sx * H, cy = H / 2 - p.sy * H, R = (shadowTan(shown.dist) / p.fov) * H;
+      for (const el of shadowEls) {
+        const b = el.getBoundingClientRect();
+        if (b.bottom < 0 || b.top > H) continue;
+        const d = Math.max(Math.hypot(b.left - cx, b.top - cy), Math.hypot(b.right - cx, b.bottom - cy), Math.hypot(b.left - cx, b.bottom - cy), Math.hypot(b.right - cx, b.top - cy));
+        el.style.opacity = (1 - smooth(0.8, 0.96, d / Math.max(R, 1))).toFixed(3);
+      }
+    }
+  };
+  requestAnimationFrame(frame);
+
+  if (import.meta.env.DEV) {
+    // 开发用：沿整页均匀取 n 帧，拼成一张分镜图叠在页面上
+    const fbo = gl.createFramebuffer()!, tex = gl.createTexture()!;
+    const storyboard = (n = 12, cols = 4) => {
+      const max = document.documentElement.scrollHeight - H, tw = 360, th = Math.round((tw * H) / W);
+      gl.bindTexture(gl.TEXTURE_2D, tex);
+      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, tw, th, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
+      gl.bindFramebuffer(gl.FRAMEBUFFER, fbo);
+      gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, tex, 0);
+      gl.viewport(0, 0, tw, th);
+      const sheet = document.createElement('canvas');
+      sheet.width = cols * tw; sheet.height = Math.ceil(n / cols) * (th + 16);
+      const g = sheet.getContext('2d')!;
+      g.fillStyle = '#111'; g.fillRect(0, 0, sheet.width, sheet.height);
+      const px = new Uint8Array(tw * th * 4);
+      for (let k = 0; k < n; k++) {
+        const sy = (max * k) / (n - 1), p = poseAt(sy);
+        draw(p, 10, tw, th);
+        gl.readPixels(0, 0, tw, th, gl.RGBA, gl.UNSIGNED_BYTE, px);
+        const img = g.createImageData(tw, th);
+        for (let r = 0; r < th; r++) img.data.set(px.subarray((th - 1 - r) * tw * 4, (th - r) * tw * 4), r * tw * 4);
+        const x0 = (k % cols) * tw, y0 = Math.floor(k / cols) * (th + 16);
+        g.putImageData(img, x0, y0);
+        g.fillStyle = '#ccc'; g.font = '11px monospace';
+        g.fillText(`${k} y=${Math.round(sy)} d=${p.dist.toFixed(1)} incl=${p.incl.toFixed(2)} R=${(shadowTan(p.dist) / p.fov).toFixed(2)}`, x0 + 4, y0 + th + 12);
+      }
+      gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+      gl.viewport(0, 0, canvas.width, canvas.height);
+      document.getElementById('__sb')?.remove();
+      sheet.id = '__sb';
+      sheet.style.cssText = 'position:fixed;left:0;top:0;z-index:9999;width:100vw;pointer-events:none';
+      document.body.append(sheet);
+    };
+    (window as unknown as { __cam: unknown }).__cam = { poseAt, storyboard };
+  }
+  return true;
 }
