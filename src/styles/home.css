@@ -150,7 +150,7 @@
 .dive { height: 150svh; }
 .dive-line {
   position: sticky; top: calc(50svh - 0.6em); margin: 0; text-align: center;
-  font-size: clamp(30px, 3.6vw, 56px); font-weight: 300; letter-spacing: 0.32em; margin-right: -0.32em;
+  font-size: clamp(30px, 3.6vw, 56px); font-weight: 300; letter-spacing: 0.32em; padding-left: 0.32em;
   color: rgb(245 242 236 / 0.92); text-shadow: 0 2px 40px rgb(0 0 0 / 0.9);
 }
 .void { height: 110svh; display: flex; align-items: center; justify-content: center; }
@@ -164,5 +164,12 @@
 .finale .fine { margin-top: 22px; max-width: 46em; }
 
 @media (max-width: 899px) {
-  .slide { padding: 8vh var(--pad); }
+  .slide { padding: 6vh var(--pad); }
+  .pane-text { padding: 24px; }
+  .facts div { padding-right: 14px; margin-right: 14px; }
+  /* 窄屏：首屏窗口露出更少，黑洞不被盖住 */
+  .hero-app { top: calc(100svh - 8svh); width: 92vw; }
+  .intro-band { margin-top: 40svh; }
+  .dive-line { letter-spacing: 0.18em; padding-left: 0.18em; font-size: clamp(26px, 8vw, 40px); }
+  .void-line { letter-spacing: 0.3em; margin-right: -0.3em; }
 }
