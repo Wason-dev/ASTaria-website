@@ -60,6 +60,8 @@ export function mountShowcase() {
       const ee = e * e * (3 - 2 * e), xx = x * x * (3 - 2 * x);
       s.style.setProperty('--e', ee.toFixed(4));
       s.style.setProperty('--x', xx.toFixed(4));
+      // 每章自己的漂移进度：跨章时连续，不会因为换章而跳动
+      s.style.setProperty('--u', Math.min(Math.max(u, -0.4), 1.4).toFixed(4));
     });
     const k = 1 - Math.exp(-dt * 4);
     cx += (mx - cx) * k; cy += (my - cy) * k;

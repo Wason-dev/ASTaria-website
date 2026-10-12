@@ -120,15 +120,14 @@ export function mountBlackHole(host: HTMLElement, opts: { span?: number } = {}) 
   // ---------- 渲染 ----------
   const shadowEls = [...document.querySelectorAll<HTMLElement>('[data-in-shadow]')];
   const t0 = performance.now();
-  // 只平滑滚动位置这一个量：临界阻尼弹簧，平稳到位，不回弹
-  let y = scrollY, vy = 0, last = t0;
-  const OMEGA = 9; // 约 0.4 秒跟上滚动：只抹掉滚轮的颗粒感，不拖后腿
+  // 只对滚动位置做一阶指数平滑：只抹掉滚轮的颗粒感。一阶平滑永远不会过冲，不会回弹。
+  let y = scrollY, last = t0;
+  const K = 30; // 时间常数约 33ms：快速甩动时也贴着手走
   const frame = (now: number) => {
     requestAnimationFrame(frame);
     const dt = Math.min((now - last) / 1000, 0.05);
     last = now;
-    if (still) y = scrollY;
-    else { vy += (-OMEGA * OMEGA * (y - scrollY) - 2 * OMEGA * vy) * dt; y += vy * dt; }
+    y = still ? scrollY : y + (scrollY - y) * (1 - Math.exp(-K * dt));
     const p = poseAt(y);
     const e = still ? 1 : 1 - Math.pow(1 - Math.min((now - t0) / 3000, 1), 3); // 开场：从更远处推近、亮起
     const shown = { ...p, dist: p.dist * (1 + 0.35 * (1 - e)), expo: p.expo * e };
