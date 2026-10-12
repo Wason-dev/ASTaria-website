@@ -79,33 +79,31 @@
 .show.pinned .flip .pane-img { left: auto; right: 6vw; }
 .show.pinned .flip .pane-text { right: auto; left: 7vw; }
 
-/* 进场 / 停留 / 退场
-   截图：从它所在的一侧带着一点角度滑进来，同时由中心向外展开（clip-path）；离开时向另一侧退远。
-   文案：从相反方向进来，稍晚一拍。两片玻璃一前一后，像两块独立的玻璃在空间里交错。 */
-.show.pinned .slide { --side: -1; perspective: 1800px; }
+/* 进场 / 停留 / 退场：完全由滚动位置驱动（scripts/showcase.ts 每帧写入 --e 进场、--x 退场），
+   没有 transition、没有延迟，手停画面就停。相邻两章交叉过渡，中间没有空档。
+   只用 transform 和 opacity，不动 filter / clip-path，快速滑动也不掉帧。 */
+.show.pinned .slide { --side: -1; --e: 0; --x: 0; perspective: 1800px; }
 .show.pinned .slide.flip { --side: 1; }
-.show.pinned .pane {
-  --x: 0px; --y: 0px; --z: 1; --ry: 0deg; --b: 0px; --o: 1;
-  opacity: var(--o);
-  filter: blur(var(--b));
-  transform: translate3d(var(--x), calc(-50% + var(--y)), 0) rotateY(var(--ry)) scale(var(--z));
-  transition: transform 1.2s var(--ease), opacity 0.9s var(--ease), filter 0.9s var(--ease), clip-path 1.2s var(--ease);
+.show.pinned .pane { will-change: transform, opacity; }
+.show.pinned .pane-img {
+  opacity: calc(var(--e) * (1 - var(--x)));
+  transform:
+    translate3d(
+      calc(var(--side) * (1 - var(--e)) * 12vw - var(--side) * var(--x) * 9vw + var(--mx) * -18px),
+      calc(-50% - var(--x) * 6vh + (0.5 - var(--local)) * 30px + var(--my) * -14px), 0)
+    rotateY(calc(var(--side) * ((1 - var(--e)) * -14deg + var(--x) * 10deg)))
+    scale(calc(0.9 + 0.1 * var(--e) - 0.08 * var(--x)));
 }
-/* 等待登场 */
-.show.pinned .slide:not(.is-on):not(.is-past) .pane-img { --x: calc(var(--side) * 14vw); --ry: calc(var(--side) * -16deg); --z: 0.9; --b: 10px; --o: 0; clip-path: inset(10% 18% round 28px); }
-.show.pinned .slide:not(.is-on):not(.is-past) .pane-text { --x: calc(var(--side) * -10vw); --z: 0.94; --b: 10px; --o: 0; }
-/* 已经离场 */
-.show.pinned .is-past .pane-img { --x: calc(var(--side) * -10vw); --y: -6vh; --ry: calc(var(--side) * 12deg); --z: 0.88; --b: 12px; --o: 0; clip-path: inset(6% 10% round 28px); }
-.show.pinned .is-past .pane-text { --x: calc(var(--side) * 8vw); --y: -8vh; --z: 0.94; --b: 12px; --o: 0; }
-.show.pinned .is-past .pane { transition-duration: 0.9s, 0.6s, 0.6s, 0.9s; }
-/* 当前：完整展开 */
-.show.pinned .is-on .pane-img { clip-path: inset(0 0 round 28px); transition-delay: 0.1s; }
-.show.pinned .is-on .pane-text { transition-delay: 0.24s; }
-/* 停留时：指针视差（两片深度不同）+ 截图随章节内进度缓慢漂移 */
-.show.pinned .is-on .pane-img { --x: calc(var(--mx) * -18px); --y: calc(var(--my) * -14px + (0.5 - var(--local)) * 36px); --ry: calc(var(--mx) * -3deg); }
-.show.pinned .is-on .pane-text { --x: calc(var(--mx) * 30px); --y: calc(var(--my) * 22px + (0.5 - var(--local)) * 64px); }
+.show.pinned .pane-text {
+  opacity: calc(var(--e) * (1 - var(--x)));
+  transform:
+    translate3d(
+      calc(var(--side) * (1 - var(--e)) * -8vw + var(--side) * var(--x) * 6vw + var(--mx) * 30px),
+      calc(-50% - var(--x) * 8vh + (0.5 - var(--local)) * 56px + var(--my) * 22px), 0)
+    scale(calc(0.95 + 0.05 * var(--e)));
+}
 
-/* 背景里的大号章节序号：只有描边，随章节内进度缓慢上移 */
+/* 背景里的大号章节序号：只有描边 */
 .show.pinned .slide::before {
   content: attr(data-n);
   position: absolute;
@@ -117,16 +115,16 @@
   color: transparent;
   -webkit-text-stroke: 1px rgb(236 211 164 / 0.22);
   transform: translate3d(0, calc(-50% + (0.5 - var(--local)) * 80px), 0);
-  opacity: 0;
-  transition: opacity 1s var(--ease);
+  opacity: calc(var(--e) * (1 - var(--x)));
   pointer-events: none;
 }
 .show.pinned .slide.flip::before { right: auto; left: 4vw; }
-.show.pinned .slide.is-on::before { opacity: 1; transition-delay: 0.3s; }
 
-/* 文案逐行出现 */
-.show.pinned .line { opacity: 0; transform: translate3d(0, 18px, 0); transition: opacity 0.7s var(--ease), transform 0.9s var(--ease); }
-.show.pinned .is-on .line { opacity: 1; transform: none; transition-delay: calc(0.36s + var(--d) * 0.08s); }
+/* 文案逐行出现：同样跟着滚动走，每行晚一点点 */
+.show.pinned .line {
+  opacity: clamp(0, (var(--e) - var(--d) * 0.12) * 1.8, 1);
+  transform: translate3d(0, calc((1 - clamp(0, (var(--e) - var(--d) * 0.12) * 1.8, 1)) * 16px), 0);
+}
 
 /* 章节导轨 */
 .show.pinned .rail { display: grid; gap: 14px; position: absolute; right: 26px; top: 50%; transform: translateY(-50%); z-index: 3; }

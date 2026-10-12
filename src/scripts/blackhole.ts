@@ -122,7 +122,7 @@ export function mountBlackHole(host: HTMLElement, opts: { span?: number } = {}) 
   const t0 = performance.now();
   // 只平滑滚动位置这一个量：临界阻尼弹簧，平稳到位，不回弹
   let y = scrollY, vy = 0, last = t0;
-  const OMEGA = 3.0;
+  const OMEGA = 9; // 约 0.4 秒跟上滚动：只抹掉滚轮的颗粒感，不拖后腿
   const frame = (now: number) => {
     requestAnimationFrame(frame);
     const dt = Math.min((now - last) / 1000, 0.05);

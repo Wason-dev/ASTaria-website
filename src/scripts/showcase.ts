@@ -1,5 +1,5 @@
 // 功能展示：一个吸顶的舞台，五章依次登场。
-//   · 滚动决定当前章节；切换时旧的两片玻璃向上退远，新的从下方、从景深里浮上来，文字逐行出现
+//   · 滚动位置直接决定每章的进场与退场（每帧计算，无延迟、无自动播放），相邻两章交叉过渡
 //   · 截图玻璃和文案玻璃是两片，指针移动时以不同深度轻微视差（阻尼跟随，不抖）
 //   · 右侧章节导轨可点击跳转，进度条随滚动填充
 // 窄屏、无 JS、减少动态效果时不启用：五章按普通文档流依次排列。
@@ -51,6 +51,16 @@ export function mountShowcase() {
     const p = Math.min(Math.max((scrollY - top) / len, 0), 0.9999);
     setActive(Math.floor(p * n));
     const local = p * n - Math.floor(p * n); // 当前章节内的进度 0..1
+    // 每章的进场 / 退场进度：章与章之间 30% 的重叠交叉过渡；第一章开场即在，最后一章不退场
+    const W = 0.3;
+    slides.forEach((s, i) => {
+      const u = p * n - i;
+      const e = i === 0 ? 1 : Math.min(Math.max((u + W) / W, 0), 1);
+      const x = i === n - 1 ? 0 : Math.min(Math.max((u - (1 - W)) / W, 0), 1);
+      const ee = e * e * (3 - 2 * e), xx = x * x * (3 - 2 * x);
+      s.style.setProperty('--e', ee.toFixed(4));
+      s.style.setProperty('--x', xx.toFixed(4));
+    });
     const k = 1 - Math.exp(-dt * 4);
     cx += (mx - cx) * k; cy += (my - cy) * k;
     stage.style.setProperty('--p', p.toFixed(4));
