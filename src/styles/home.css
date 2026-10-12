@@ -7,10 +7,24 @@
 
 /* ---------- 开场：标题在上，黑洞在下方 ---------- */
 .hero {
+  position: relative;
   min-height: 100svh;
   display: flex; flex-direction: column; align-items: center; text-align: center;
-  padding: clamp(110px, 17vh, 170px) var(--pad) 0;
+  padding: clamp(96px, 14vh, 150px) var(--pad) 0;
 }
+/* 应用窗口：首屏底部露出上沿，滚动时升起，压在黑洞前面——像地平线上升起的一块玻璃 */
+.hero-app {
+  position: absolute;
+  left: 50%;
+  top: calc(100svh - 11svh);
+  width: min(86vw, 1100px);
+  padding: clamp(8px, 0.8vw, 12px);
+  transform: translate3d(-50%, calc(var(--rise, 0) * -46svh), 0) perspective(1600px) rotateX(calc((1 - var(--rise, 0)) * 16deg));
+  transform-origin: 50% 0;
+  opacity: calc(1 - max(var(--rise, 0) - 0.55, 0) / 0.45);
+  will-change: transform, opacity;
+}
+.hero-app .shot .frame { border-radius: clamp(14px, 1.4vw, 22px); }
 .word {
   margin-top: 22px;
   font-size: clamp(60px, 8vw, 128px);
@@ -27,7 +41,7 @@
 .meta a, .fine a { color: var(--fg-2); text-decoration: underline; text-underline-offset: 3px; text-decoration-color: rgb(255 255 255 / 0.25); }
 .meta a:hover, .fine a:hover { color: var(--fg); }
 
-.intro-band { min-height: 70svh; display: flex; align-items: center; justify-content: center; padding: 0 var(--pad); }
+.intro-band { min-height: 70svh; margin-top: 52svh; display: flex; align-items: center; justify-content: center; padding: 0 var(--pad); }
 .intro { max-width: 22em; text-align: center; font-size: clamp(22px, 2.2vw, 34px); line-height: 1.55; font-weight: 500; color: var(--fg); text-shadow: 0 2px 30px rgb(0 0 0 / 0.9); }
 
 /* ---------- 功能展示：吸顶舞台，两片玻璃 ---------- */
