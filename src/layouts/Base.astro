@@ -36,6 +36,14 @@ const og = new URL('/og.jpg', Astro.site).href;
     <script is:inline>document.documentElement.classList.add('js')</script>
   </head>
   <body>
+    <!-- 空心字（.hollow）：字填实后沿整体轮廓向外扩一圈、减去原来的字，只留外轮廓，颜色就是字本身的颜色。
+         不用 text-stroke：系统字体的字形内部有重叠的笔画，描边会把这些交叉线也画出来 -->
+    <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+      <filter id="hollow" x="-4%" y="-8%" width="108%" height="116%" color-interpolation-filters="sRGB">
+        <feMorphology in="SourceGraphic" operator="dilate" radius="1.3" result="grow" />
+        <feComposite in="grow" in2="SourceGraphic" operator="out" />
+      </filter>
+    </svg>
     <Nav current={page} />
     <main id="main"><slot /></main>
     <Footer />

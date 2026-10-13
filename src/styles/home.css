@@ -26,7 +26,9 @@
   -webkit-backdrop-filter: blur(16px) saturate(130%);
   backdrop-filter: blur(16px) saturate(130%);
 }
-.hp-pane .word { text-shadow: none; filter: drop-shadow(0 2px 18px rgb(0 0 0 / 0.35)); }
+/* 标题不加投影滤镜；玻璃高光用普通叠加。空心字用了滤镜，和「滤色」混合的高光叠在一起会在滤镜区域显出一个方框 */
+.hp-pane .word { text-shadow: none; }
+.hp-pane.glass::after { mix-blend-mode: normal; opacity: 0.6; }
 .hp-pane.small { padding: 22px clamp(22px, 2.4vw, 30px); border-radius: 24px; }
 .hp-pane.small .cta { margin-top: 0; }
 .hp-pane.small .meta { margin-top: 16px; color: var(--fg-2); }
@@ -42,6 +44,13 @@
   -webkit-background-clip: text; background-clip: text; color: transparent;
 }
 .word.small { font-size: clamp(40px, 4.8vw, 72px); font-weight: 400; }
+/* 首页标题：AST 实心、aria 空心，颜色不变。
+   渐变只给实心部分（父元素若带 background-clip: text，会把空心字也填满）；空心部分只描边，描边取渐变的中间色 */
+.word.split { background: none; color: inherit; }
+.word.split .solid { background: linear-gradient(180deg, #fffaf1 20%, #e6d3ad 100%); -webkit-background-clip: text; background-clip: text; color: transparent; }
+/* 空心：字填实后用 SVG 滤镜只留外轮廓（见 Base.astro 的 #hollow），不会出现笔画交叉线 */
+.hollow { display: inline-block; filter: url(#hollow); }
+.word.split .hollow { color: #f3e8d3; letter-spacing: -0.01em; margin-left: 0.02em; }
 .slogan { margin-top: 16px; font-size: clamp(17px, 1.6vw, 22px); font-weight: 400; letter-spacing: 0.22em; color: var(--fg-2); }
 .cta { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 32px; }
 .meta { margin-top: 20px; color: var(--fg-4); font-size: 13px; }

@@ -50,7 +50,8 @@ const cards = [
     <div class="hero-panes">
       <div class="hp-pane glass" data-glass>
         <p class="tag" data-reveal><span class="mono">{release.version}</span>预发布</p>
-        <h1 id="hero-h" class="word" data-reveal="word">ASTaria</h1>
+        <h1 id="hero-h" class="word split" data-reveal="word"><span class="solid">AST</span><span class="hollow">aria</span></h1>
+
         <p class="slogan" data-reveal="up" data-delay="1">让时间有引力</p>
       </div>
       <div class="hp-pane small glass" data-glass>
@@ -79,7 +80,7 @@ const cards = [
   <!-- 空档：画出来的一天 -->
   <section class="gaps" aria-labelledby="g-h">
     <p class="eyebrow" data-reveal>排程</p>
-    <h2 id="g-h" class="headline sm" data-reveal="lines"><span class="ln"><span>放进真实的空档</span></span></h2>
+    <h2 id="g-h" class="headline sm" data-reveal="lines"><span class="ln"><span>放进真实的<span class="hollow">空档</span></span></span></h2>
     <p class="gaps-body" data-reveal="up">析熙先看这一天已经被课程和任务占住的时间，再把新事项放进空着的时段，不和已有安排重叠。</p>
     <DayGaps />
   </section>
