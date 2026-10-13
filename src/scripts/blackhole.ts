@@ -128,10 +128,10 @@ export function mountBlackHole(host: HTMLElement) {
       want = c01((H * 0.9 - b.top) / (b.height * 0.8));
     }
     dive = still ? want : dive + (want - dive) * (1 - Math.exp(-DIVE_K * dt));
-    // 内容区压暗：用约 1.4 屏慢慢压下去；离结尾还有 3 屏时开始、用 1.4 屏慢慢恢复
+    // 内容区压暗：用约 1.4 屏慢慢压下去；越过视界那一段进入屏幕时才开始、用 1.4 屏慢慢恢复
     if (dimEl) {
       const into = c01((H - dimEl.getBoundingClientRect().top) / (H * 1.4));
-      const out = c01((H * 3 - diveTop) / (H * 1.4));
+      const out = c01((H * 1.6 - diveTop) / (H * 1.4));
       const dWant = into * (1 - out);
       dim = still ? dWant : dim + (dWant - dim) * (1 - Math.exp(-6 * dt));
       const q = Math.round(dim * 100) / 100;
