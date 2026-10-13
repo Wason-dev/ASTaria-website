@@ -40,11 +40,11 @@ const og = new URL('/og.jpg', Astro.site).href;
     <main id="main"><slot /></main>
     <Footer />
     <script>
-      // 进场：元素靠近视口时只淡入一次，不位移。没有 JS 时内容本来就可见。
+      // 进场：元素进入视口时播放一次。没有 JS 时内容本来就可见。
       const els = document.querySelectorAll('[data-reveal]');
       const io = new IntersectionObserver(
         (entries) => entries.forEach((e) => e.isIntersecting && (e.target.classList.add('in'), io.unobserve(e.target))),
-        { rootMargin: '0px 0px 18% 0px', threshold: 0.01 },
+        { rootMargin: '0px 0px -8% 0px', threshold: 0.01 },
       );
       els.forEach((el) => io.observe(el));
       // 后备：某些环境不触发 IntersectionObserver 时，按滚动位置补上，内容不会一直隐藏。

@@ -1,25 +1,26 @@
 // 背景黑洞：天文馆里的天体。它按自己的时钟慢慢转，不跟着滚动走。
 //
-//   黑洞在画面右侧，大，边缘可以出画；文字统一在左侧一栏。方位角极慢地匀速增加，仰角小幅起伏。
-//   结尾 [data-cam="dive"] 这一段：推进程度直接由这一段的滚动位置决定（往下滑多少推进多少，
-//   往回滑就退回），只加一层一阶平滑，不会过冲。画面全黑后，之后的内容都留在黑暗里。
+//   位置和大小由页面上的 [data-hole] 槽位决定：黑洞中心对准槽位中心，盘面宽度刚好落在槽位里，
+//   所以它和左侧文字共用同一条网格，左右留白一致，不会出画。方位角极慢地匀速增加，仰角小幅起伏。
+//   滚进内容区（[data-dim]）时慢慢压暗、轻微模糊；接近结尾再慢慢恢复。
+//   结尾 [data-cam="dive"] 约三屏：推进程度由这一段的滚动位置决定，加一层一阶平滑，不会过冲。
 import { VERT, FRAG } from './blackhole-shader';
 
 interface Pose { dist: number; incl: number; yaw: number; fov: number; sx: number; sy: number; expo: number }
 
 const DIST = 32;
-const R_HOME = 0.15, R_DOC = 0.09; // 阴影半径（屏高）
+const DISC_SPAN = 4.2; // 盘面可见的半宽 ≈ 阴影半径 × 4.2（含外圈淡光）
 const YAW0 = -0.55;
 const YAW_RATE = 0.00055; // 弧度 / 秒，一整圈约 3 小时
 const INCL_MID = 0.18, INCL_AMP = 0.10;
 const INCL_PERIOD = 140; // 秒
-const DIVE_K = 20; // 一阶平滑，约 50ms：只抹掉滚轮的颗粒感
+const DIVE_K = 8; // 一阶平滑，约 0.12 秒：快速一甩也不会一下跳到底
 
 const shadowTan = (d: number) => Math.tan(Math.asin(Math.min((2.598 * Math.sqrt(Math.max(1 - 1 / d, 0))) / d, 0.999)));
 const logLerp = (a: number, b: number, t: number) => Math.exp(Math.log(a) + (Math.log(b) - Math.log(a)) * t);
 const mix = (a: number, b: number, t: number) => a + (b - a) * t;
 
-export function mountBlackHole(host: HTMLElement, opts: { offset?: boolean } = {}) {
+export function mountBlackHole(host: HTMLElement) {
   const still = matchMedia('(prefers-reduced-motion: reduce)').matches;
   const canvas = document.createElement('canvas');
   const gl = canvas.getContext('webgl2', { antialias: false, alpha: false, powerPreference: 'high-performance' });
@@ -77,22 +78,34 @@ export function mountBlackHole(host: HTMLElement, opts: { offset?: boolean } = {
   addEventListener('resize', size);
 
   const diveEl = document.querySelector<HTMLElement>('[data-cam="dive"]');
+  const dimEl = document.querySelector<HTMLElement>('[data-dim]');
+  // 槽位：按页面顶部时的位置量一次（黑洞固定在背景里，不随滚动移动）
+  const slotEl = document.querySelector<HTMLElement>('[data-hole]');
+  let slot = { cx: 0, cy: 0, r: 0 };
+  const measure = () => {
+    if (!slotEl) { slot = { cx: W * 0.68, cy: H * 0.42, r: H * 0.1 }; return; }
+    const b = slotEl.getBoundingClientRect();
+    const top = b.top + scrollY;
+    slot = { cx: b.left + b.width / 2, cy: top + b.height / 2, r: Math.min(b.width / 2 / DISC_SPAN, b.height / 2 / 2.6) };
+  };
+  measure();
+  addEventListener('resize', measure);
+  addEventListener('load', measure);
+  document.fonts?.ready.then(measure);
   const shadowEls = [...document.querySelectorAll<HTMLElement>('[data-in-shadow]')];
   const t0 = performance.now();
-  let dive = 0, last = t0;
+  let dive = 0, dim = 0, dimShown = -1, last = t0;
 
   const sky = (now: number): Pose => {
     const t = (now - t0) / 1000;
-    const a = W / H;
     const dist = DIST;
-    const portrait = a < 0.95;
-    const fov = shadowTan(dist) / (opts.offset ? R_DOC : portrait ? 0.12 : R_HOME);
+    const fov = shadowTan(dist) / Math.max(slot.r / H, 0.02);
     return {
       dist, fov,
       incl: still ? INCL_MID : INCL_MID + INCL_AMP * Math.sin((2 * Math.PI * t) / INCL_PERIOD),
       yaw: YAW0 + (still ? 0 : YAW_RATE * t),
-      sx: opts.offset ? (portrait ? 0 : Math.min(a * 0.3, 0.52)) : portrait ? a * 0.18 : a * 0.25,
-      sy: opts.offset ? (portrait ? 0.26 : 0.2) : portrait ? 0.27 : 0.06,
+      sx: (slot.cx - W / 2) / H,
+      sy: (H / 2 - slot.cy) / H,
       expo: 1.05,
     };
   };
@@ -106,13 +119,27 @@ export function mountBlackHole(host: HTMLElement, opts: { offset?: boolean } = {
     requestAnimationFrame(frame);
     const dt = Math.min((now - last) / 1000, 0.05);
     last = now;
-    // 推进进度：这一段顶部到屏幕下方 10% 时开始，滚过这一段 75% 的高度时全黑
-    let want = 0;
+    const c01 = (v: number) => Math.min(Math.max(v, 0), 1);
+    // 推进进度：这一段顶部到屏幕下方 10% 时开始，滚过这一段 80% 的高度时全黑
+    let want = 0, diveTop = Infinity;
     if (diveEl) {
       const b = diveEl.getBoundingClientRect();
-      want = Math.min(Math.max((H * 0.9 - b.top) / (b.height * 0.75), 0), 1);
+      diveTop = b.top;
+      want = c01((H * 0.9 - b.top) / (b.height * 0.8));
     }
     dive = still ? want : dive + (want - dive) * (1 - Math.exp(-DIVE_K * dt));
+    // 内容区压暗：用约 1.4 屏慢慢压下去；离结尾还有 3 屏时开始、用 1.4 屏慢慢恢复
+    if (dimEl) {
+      const into = c01((H - dimEl.getBoundingClientRect().top) / (H * 1.4));
+      const out = c01((H * 3 - diveTop) / (H * 1.4));
+      const dWant = into * (1 - out);
+      dim = still ? dWant : dim + (dWant - dim) * (1 - Math.exp(-6 * dt));
+      const q = Math.round(dim * 100) / 100;
+      if (q !== dimShown) {
+        dimShown = q;
+        canvas.style.filter = q > 0 ? `brightness(${(1 - 0.55 * q).toFixed(2)}) blur(${(4 * q).toFixed(1)}px)` : '';
+      }
+    }
     const s = sky(now);
     const i = inside(s);
     const u = dive * dive * (3 - 2 * dive);

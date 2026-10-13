@@ -130,8 +130,21 @@ code, pre, .mono { font-family: var(--mono); font-variant-numeric: tabular-nums;
   cursor: pointer; color: var(--fg);
   transition: background-color 300ms var(--ease), box-shadow 300ms var(--ease), transform 300ms var(--ease), color 300ms var(--ease);
 }
-.btn svg { width: 18px; height: 18px; flex: none; }
-.btn:active { transform: scale(0.98); }
+.btn { position: relative; overflow: hidden; isolation: isolate; }
+.btn svg { width: 18px; height: 18px; flex: none; transition: transform 400ms var(--ease); }
+.btn:hover { transform: translateY(-1px); }
+.btn:active { transform: scale(0.97); transition-duration: 120ms; }
+/* 悬停时一道光从左扫到右 */
+.btn::after {
+  content: ''; position: absolute; inset: 0; z-index: -1; pointer-events: none;
+  background: linear-gradient(105deg, transparent 30%, rgb(255 255 255 / 0.55) 50%, transparent 70%);
+  transform: translateX(-120%); transition: transform 0.9s var(--ease);
+}
+.btn-ghost::after { background: linear-gradient(105deg, transparent 30%, rgb(255 255 255 / 0.14) 50%, transparent 70%); }
+.btn:hover::after { transform: translateX(120%); }
+.btn:hover svg:first-child { transform: translateY(2px); }
+.btn:hover svg:last-of-type:not(:first-child) { transform: translate(2px, -2px); }
+.more:hover svg { transform: translateX(3px); }
 .btn-primary {
   color: #0b0a08;
   background: linear-gradient(180deg, #fffdf9 0%, #ebe5da 100%);
@@ -170,15 +183,27 @@ code, pre, .mono { font-family: var(--mono); font-variant-numeric: tabular-nums;
 .status[data-s='testing']::before { border-style: dashed; }
 .status[data-s='unavailable'], .status[data-s='planned'] { color: var(--fg-4); }
 
-/* ---------- 进场：只在有 JS 时生效，没有 JS 时内容直接可见。只淡入，不位移。 ---------- */
-.js [data-reveal] { opacity: 0; transition: opacity 0.7s var(--ease); }
+/* ---------- 进场：只在有 JS 时生效，没有 JS 时内容直接可见 ----------
+   默认只淡入；up 轻微上浮；word 大字从稍大、稍虚的状态落定；lines 每一行从遮罩下升起。 */
+.js [data-reveal] { opacity: 0; transition: opacity 0.9s var(--ease); }
 .js [data-reveal].in { opacity: 1; }
+.js [data-reveal='up'] { transform: translate3d(0, 28px, 0); transition: opacity 1s var(--ease), transform 1.2s var(--ease); }
+.js [data-reveal='up'].in { transform: none; }
+.js [data-reveal='word'] { transform: scale(1.04); letter-spacing: -0.02em; transition: opacity 1.4s var(--ease), transform 1.8s var(--ease), letter-spacing 1.8s var(--ease); }
+.js [data-reveal='word'].in { transform: none; letter-spacing: -0.04em; }
+[data-reveal='lines'] .ln { display: block; overflow: hidden; padding-bottom: 0.08em; margin-bottom: -0.08em; }
+[data-reveal='lines'] .ln > span { display: block; }
+.js [data-reveal='lines'] { opacity: 1; }
+.js [data-reveal='lines'] .ln > span { transform: translate3d(0, 105%, 0); transition: transform 1.2s var(--ease); }
+.js [data-reveal='lines'] .ln:nth-child(2) > span { transition-delay: 0.12s; }
+.js [data-reveal='lines'] .ln:nth-child(3) > span { transition-delay: 0.24s; }
+.js [data-reveal='lines'].in .ln > span { transform: none; }
 .js [data-reveal][data-delay='1'] { transition-delay: 80ms; }
 .js [data-reveal][data-delay='2'] { transition-delay: 160ms; }
 .js [data-reveal][data-delay='3'] { transition-delay: 240ms; }
 
 @media (prefers-reduced-motion: reduce) {
-  .js [data-reveal] { transform: none !important; filter: none !important; transition: opacity 400ms linear; }
+  .js [data-reveal], .js [data-reveal] .ln > span { transform: none !important; filter: none !important; transition: opacity 400ms linear; }
   *, *::before, *::after { transition-duration: 1ms !important; animation-duration: 1ms !important; scroll-behavior: auto !important; }
 }
 

@@ -1,5 +1,5 @@
 ---
-// 说明类页面：背后同样是实时黑洞。黑洞偏右，标题在左。正文落在一块玻璃阅读面上。
+// 说明类页面：标题区与首页同一网格——文字在左栏，黑洞落在右栏的 [data-hole] 槽位里。正文落在一块玻璃阅读面上。
 import Base from './Base.astro';
 import '../styles/doc.css';
 
@@ -19,14 +19,17 @@ const { title, description, page, eyebrow, lead, toc } = Astro.props;
   <div class="bh" id="bh" aria-hidden="true"></div>
   <article class="doc">
     <header class="doc-head wrap">
-      {eyebrow && <p class="eyebrow">{eyebrow}</p>}
-      <h1 class="t-1">{title}</h1>
-      {lead && <p class="lead">{lead}</p>}
-      {toc && (
-        <nav class="toc" aria-label="本页目录">
-          {toc.map(([id, label]) => <a href={`#${id}`}>{label}</a>)}
-        </nav>
-      )}
+      <div class="head-text">
+        {eyebrow && <p class="eyebrow">{eyebrow}</p>}
+        <h1 class="t-1">{title}</h1>
+        {lead && <p class="lead">{lead}</p>}
+        {toc && (
+          <nav class="toc" aria-label="本页目录">
+            {toc.map(([id, label]) => <a href={`#${id}`}>{label}</a>)}
+          </nav>
+        )}
+      </div>
+      <div class="hole" data-hole aria-hidden="true"></div>
     </header>
     <div class="doc-body wrap">
       <div class="sheet glass">
@@ -37,7 +40,7 @@ const { title, description, page, eyebrow, lead, toc } = Astro.props;
   <script>
     import { mountBlackHole } from '../scripts/blackhole';
     const bh = document.getElementById('bh')!;
-    if (!mountBlackHole(bh, { offset: true })) document.documentElement.classList.add('bh-off');
+    if (!mountBlackHole(bh)) document.documentElement.classList.add('bh-off');
     // 复制按钮：复制目标元素的文本，图标换成对勾 1.6 秒。没有 JS 时文本本身仍可选中复制。
     document.querySelectorAll<HTMLButtonElement>('[data-copy]').forEach((b) => {
       b.hidden = false;
