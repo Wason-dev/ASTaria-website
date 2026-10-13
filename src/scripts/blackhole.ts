@@ -3,7 +3,7 @@
 //   首页开场 [data-cam="fly"]：镜头贴着盘面飞过，往下滑约 0.9 屏拉回全景。
 //   文档页的位置和大小由页面上的 [data-hole] 槽位决定：黑洞中心对准槽位中心，盘面宽度刚好落在槽位里，
 //   所以它和左侧文字共用同一条网格，左右留白一致，不会出画。方位角极慢地匀速增加，仰角小幅起伏。
-//   滚进内容区（[data-dim]）时慢慢压暗、轻微模糊；接近结尾再慢慢恢复。
+//   滚进内容区（[data-dim]）时慢慢压暗（不模糊）；接近结尾再慢慢恢复。
 //   结尾 [data-cam="dive"] 约三屏：推进程度由这一段的滚动位置决定，加一层一阶平滑，不会过冲。
 import { VERT, FRAG } from './blackhole-shader';
 
@@ -70,7 +70,8 @@ export function mountBlackHole(host: HTMLElement) {
   let W = innerWidth, H = innerHeight;
   const size = () => {
     W = innerWidth; H = innerHeight;
-    const k = Math.min(devicePixelRatio, 2) * (W < 760 ? 0.6 : 0.72);
+    // 渲染分辨率：桌面 0.9 倍，细丝不糊；窄屏 0.6 倍省电
+    const k = Math.min(devicePixelRatio, 2) * (W < 760 ? 0.6 : 0.9);
     canvas.width = Math.round(W * k);
     canvas.height = Math.round(H * k);
     gl.viewport(0, 0, canvas.width, canvas.height);
@@ -120,7 +121,7 @@ export function mountBlackHole(host: HTMLElement) {
     const a = W / H, portrait = a < 0.95;
     return {
       dist: from.dist, fov: shadowTan(from.dist) / (portrait ? 0.3 : 0.52), incl: 0.1, yaw: from.yaw,
-      sx: portrait ? 0.18 : a * 0.48, sy: portrait ? 0.22 : 0.0, expo: 0.9, roll: 0.12,
+      sx: portrait ? 0.18 : a * 0.48, sy: portrait ? 0.22 : 0.0, expo: 1.2, roll: 0.12,
     };
   };
   const inside = (from: Pose): Pose => {
@@ -156,7 +157,7 @@ export function mountBlackHole(host: HTMLElement) {
       const q = Math.round(dim * 100) / 100;
       if (q !== dimShown) {
         dimShown = q;
-        canvas.style.filter = q > 0 ? `brightness(${(1 - 0.5 * q).toFixed(2)}) blur(${(1.2 * q).toFixed(1)}px)` : '';
+        canvas.style.filter = q > 0 ? `brightness(${(1 - 0.5 * q).toFixed(2)})` : ''; // 只压暗，不模糊
         host.style.setProperty('--dim', String(q));
       }
     }

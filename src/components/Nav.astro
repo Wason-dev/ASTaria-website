@@ -42,8 +42,9 @@ const links = [
     border-bottom: 1px solid rgb(255 255 255 / 0.06);
   }
   .nav-in {
+    /* 导航栏占满整个宽度：标志靠左边、链接和 GitHub 靠右边（与应用顶栏一致） */
     display: flex; align-items: center; gap: 32px; height: 100%;
-    max-width: calc(var(--wrap) + var(--pad) * 2); margin: 0 auto; padding: 0 var(--pad);
+    padding: 0 clamp(20px, 2.6vw, 40px);
   }
   .word { font-size: 18px; font-weight: 600; letter-spacing: 0.01em; margin-right: auto; }
   .links { display: flex; gap: 28px; margin: 0; padding: 0; list-style: none; }
@@ -51,11 +52,12 @@ const links = [
   .links a:hover, .links a[aria-current='page'] { color: var(--fg); }
   .gh { display: grid; place-items: center; width: 32px; height: 32px; border-radius: 50%; color: var(--fg-2); transition: color 200ms var(--ease), background-color 200ms var(--ease); }
   .gh:hover { color: var(--fg); background: rgb(255 255 255 / 0.08); }
-  .menu { display: none; position: relative; }
+  .menu { display: none; }
+  .menu:not([open]) .sheet { display: none; }
   .menu summary { display: grid; place-items: center; width: 40px; height: 40px; list-style: none; cursor: pointer; color: var(--fg-2); }
   .menu summary::-webkit-details-marker { display: none; }
   .sheet {
-    position: fixed; left: 0; right: 0; top: 52px; display: grid; padding: 12px var(--pad) 28px;
+    position: absolute; left: 0; right: 0; top: 100%; display: grid; padding: 12px var(--pad) 28px;
     background: rgb(10 10 11 / 0.96); -webkit-backdrop-filter: blur(20px); backdrop-filter: blur(20px);
     border-bottom: 1px solid var(--line-2);
   }

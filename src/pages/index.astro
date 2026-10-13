@@ -69,7 +69,7 @@ const cards = [
       <p class="chat-body" data-reveal="up">析熙读取你真实的课程和空档，把事项放进去。每次修改都有回执，<b>只写实际保存的内容</b>，可以一键撤销。</p>
       <p class="chat-note" data-reveal>演示对话，数据为虚构。</p>
     </div>
-    <div class="chat-demo" data-reveal="up"><XixiChat /></div>
+    <div class="chat-demo"><XixiChat /></div>
   </section>
 
   <!-- 空档：画出来的一天 -->
@@ -77,7 +77,7 @@ const cards = [
     <p class="eyebrow" data-reveal>排程</p>
     <h2 id="g-h" class="headline sm" data-reveal="lines"><span class="ln"><span>放进真实的空档</span></span></h2>
     <p class="gaps-body" data-reveal="up">析熙先看这一天已经被课程和任务占住的时间，再把新事项放进空着的时段，不和已有安排重叠。</p>
-    <div data-reveal="up"><DayGaps /></div>
+    <DayGaps />
   </section>
 
   <!-- 功能区 -->
@@ -95,7 +95,7 @@ const cards = [
           ))}
         </ul>
       </div>
-      <div class="feat-stage" data-reveal="up">
+      <div class="feat-stage">
         {tabs.map((t, i) => (
           <div class:list={['panel', { on: i === 0 }]}>{t.k === '日程' ? <WeekShift /> : <div class="shot-pane glass" data-glass><Shot src={t.img} alt={t.alt} sizes="(min-width: 1180px) 760px, 94vw" /></div>}</div>
         ))}
@@ -107,11 +107,11 @@ const cards = [
   <section class="details" aria-labelledby="d-h">
     <h2 id="d-h" class="headline sm" data-reveal="lines"><span class="ln"><span>每一处细节</span></span></h2>
     <div class="carousel" data-carousel>
-      <ul class="track" data-reveal="up">
+      <ul class="track">
         {cards.map((c) => (
           <li class="card">
-            <div class="card-img glass" data-glass><Shot src={c.img} alt={c.alt} sizes="(min-width: 1100px) 760px, 86vw" /></div>
-            <p><strong>{c.lead}</strong>{c.p}</p>
+            <div class="card-img glass" data-glass data-reveal="up"><Shot src={c.img} alt={c.alt} sizes="(min-width: 1100px) 760px, 86vw" /></div>
+            <p data-reveal="up" data-delay="1"><strong>{c.lead}</strong>{c.p}</p>
           </li>
         ))}
       </ul>
@@ -134,7 +134,7 @@ const cards = [
         <p class="spec-n">共享文件夹本身不是端到端加密存储。</p>
       </div>
     </div>
-    <div class="data-map" data-reveal="up"><SyncMap /></div>
+    <div class="data-map"><SyncMap /></div>
   </section>
 
   <!-- 越过视界：推进程度跟着这一段的滚动走，约三屏。画面全黑后，下载就在这行字下面 -->

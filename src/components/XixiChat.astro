@@ -7,7 +7,7 @@ const first = scenes[0];
 ---
 
 <div class="xx" data-xixi>
-  <div class="xx-win glass" data-glass>
+  <div class="xx-win glass" data-glass data-reveal="up">
     <div class="xx-top"><span class="xx-name">析熙</span><span class="xx-sub">对话记录</span></div>
     <div class="xx-log">
       <div class="msg me"><span class="who">你</span><p>{first.user}</p></div>
@@ -21,7 +21,7 @@ const first = scenes[0];
     </div>
     <div class="xx-input"><span class="xx-field">哪里需要一起想想</span><span class="xx-send">发给析熙</span></div>
   </div>
-  <div class="xx-chips" role="group" aria-label="对话示例">
+  <div class="xx-chips" role="group" aria-label="对话示例" data-reveal="up" data-delay="1">
     {scenes.map((s, i) => <button type="button" class="chip" data-scene={i} aria-pressed={i === 0 ? 'true' : 'false'}>{s.chip}</button>)}
   </div>
   <script type="application/json" data-scenes set:html={JSON.stringify(scenes)} />

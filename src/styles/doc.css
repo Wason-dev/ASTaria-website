@@ -6,7 +6,7 @@
 .doc-body { max-width: calc(var(--wrap) + var(--pad) * 2); }
 .doc-head .t-1 { margin-top: 20px; font-size: clamp(40px, 4.6vw, 72px); line-height: 1.06; letter-spacing: -0.03em; }
 @media (max-aspect-ratio: 19/20) {
-  .doc-head { min-height: 0; grid-template-columns: 1fr; gap: 0; padding-top: 24px; }
+  .doc-head { min-height: 0; grid-template-columns: minmax(0, 1fr); gap: 0; padding-top: 24px; }
   .doc-head .hole { order: -1; height: 30svh; }
 }
 .doc-head .lead { color: var(--fg-2); max-width: 26em; }
@@ -84,7 +84,7 @@ details.qa > div p { color: var(--fg-2); }
 details.qa > div p + p { margin-top: 12px; }
 
 @media (max-width: 600px) {
-  .kv { grid-template-columns: 1fr; }
+  .kv { grid-template-columns: minmax(0, 1fr); }
   .kv dt { padding-bottom: 0; border-top: 1px solid var(--line-2); }
   .kv dd { padding-top: 4px; border-top: 0; }
 }

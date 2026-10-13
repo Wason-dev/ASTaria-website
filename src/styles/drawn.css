@@ -95,7 +95,7 @@
 .pk:nth-child(3) { animation-delay: 2.4s; }
 .smap.vis .pk { animation-play-state: running; }
 @keyframes travel { 0% { left: 0; opacity: 0; } 15% { opacity: 1; } 85% { opacity: 1; } 100% { left: 100%; opacity: 0; } }
-.smap-cap { position: absolute; left: 0; right: 0; top: 22px; text-align: center; font-size: 11px; color: var(--fg-4); }
+.smap-cap { position: absolute; left: 0; right: 0; top: 22px; text-align: center; font-size: 11px; color: var(--fg-4); white-space: nowrap; }
 
 @media (prefers-reduced-motion: reduce) {
   .smap-ring, .pk { animation: none !important; }
@@ -112,9 +112,11 @@
   .ws { aspect-ratio: auto; min-height: 340px; gap: 4px; padding: 16px 10px 44px; }
   .ws-h { flex-direction: column; align-items: center; }
   .ws-tag { font-size: 10px; }
-  .smap { grid-template-columns: 1fr; gap: 0; justify-items: center; padding: 48px 20px; }
-  .smap-line { width: 1px; height: 64px; margin: 18px 0; background: linear-gradient(180deg, transparent, rgb(255 255 255 / 0.22), transparent); }
+  .smap { grid-template-columns: minmax(0, 1fr); gap: 0; justify-items: center; padding: 44px 20px; }
+  .smap-node { padding: 6px 0; }
+  .smap-ring { width: 150px; height: 150px; margin: -75px 0 0 -75px; }
+  .smap-line { width: 1px; height: 76px; margin: 34px 0 22px; background: linear-gradient(180deg, transparent, rgb(255 255 255 / 0.22), transparent); }
   .pk { left: 50%; top: 0; margin: -13px 0 0 -13px; animation-name: travelv; }
-  .smap-cap { top: 50%; left: 18px; right: auto; text-align: left; transform: translateY(-50%); }
+  .smap-cap { top: 50%; left: 16px; right: auto; text-align: left; transform: translateY(-50%); }
   @keyframes travelv { 0% { top: 0; opacity: 0; } 15% { opacity: 1; } 85% { opacity: 1; } 100% { top: 100%; opacity: 0; } }
 }
