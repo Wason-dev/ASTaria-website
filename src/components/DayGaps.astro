@@ -1,0 +1,29 @@
+---
+// 画出来的一天：课程和已有任务占住时间，空档发光，新事项从上方落进 18:00–18:45。
+// 演示数据与应用 README 一致（今晚 18:00–18:45 做实验报告，19:00 有实验数据整理）。
+const START = 8, END = 22;
+const pos = (a: number, b: number) => `left:${((a - START) / (END - START)) * 100}%;width:${((b - a) / (END - START)) * 100}%`;
+const hm = (h: number, m = 0) => h + m / 60;
+const blocks = [
+  { a: hm(8, 10), b: hm(9, 40), t: '数据结构', k: 'course' },
+  { a: hm(10), b: hm(11, 40), t: '计算机网络', k: 'course' },
+  { a: hm(12), b: hm(13, 30), t: '午休', k: 'rest' },
+  { a: hm(14), b: hm(15, 40), t: '数据库实验', k: 'course' },
+  { a: hm(19), b: hm(20), t: '实验数据整理', k: 'task' },
+];
+const gaps = [[hm(15, 40), hm(19)], [hm(20), hm(22)]];
+const slot = [hm(18), hm(18, 45)];
+const ticks = [8, 10, 12, 14, 16, 18, 20, 22];
+---
+
+<div class="dg" data-play aria-label="示意图：新事项被安排进 18:00 到 18:45 的空档" role="img">
+  <div class="dg-track">
+    {gaps.map(([a, b]) => <span class="dg-gap" style={pos(a, b)}></span>)}
+    {blocks.map((x) => <span class:list={['dg-b', x.k]} style={pos(x.a, x.b)}><em>{x.t}</em></span>)}
+    <span class="dg-slot" style={pos(slot[0], slot[1])}>
+      <span class="dg-chip">完成物理实验报告<b>45 分钟</b></span>
+    </span>
+  </div>
+  <div class="dg-ticks">{ticks.map((h) => <span style={`left:${((h - START) / (END - START)) * 100}%`}>{String(h).padStart(2, '0')}:00</span>)}</div>
+  <div class="dg-legend"><span class="lg course">课程</span><span class="lg task">已排任务</span><span class="lg gap">空档</span><span class="lg new">析熙刚排进来</span></div>
+</div>

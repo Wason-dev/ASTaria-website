@@ -1,0 +1,32 @@
+---
+// 画出来的一周：10/5–10/6 放假，10/9 换成周三的课，10/10 周六换成周五的课。其他日子不动。
+// 与应用 README 的演示数据一致。滚到这里时，三天依次「翻」成新的样子。
+type Day = { d: string; w: string; base: number[]; after?: number[]; tag?: string; off?: boolean };
+// 每天 5 个时段，1 = 有课
+const MON = [1, 1, 0, 1, 0], TUE = [1, 0, 1, 1, 0], WED = [0, 1, 1, 0, 1], THU = [1, 1, 0, 0, 1], FRI = [1, 0, 1, 0, 1], NONE = [0, 0, 0, 0, 0];
+const days: Day[] = [
+  { d: '10/5', w: '周一', base: MON, after: NONE, tag: '放假', off: true },
+  { d: '10/6', w: '周二', base: TUE, after: NONE, tag: '放假', off: true },
+  { d: '10/7', w: '周三', base: WED },
+  { d: '10/8', w: '周四', base: THU },
+  { d: '10/9', w: '周五', base: FRI, after: WED, tag: '周三课表' },
+  { d: '10/10', w: '周六', base: NONE, after: FRI, tag: '周五课表' },
+  { d: '10/11', w: '周日', base: NONE },
+];
+---
+
+<div class="ws" data-play role="img" aria-label="示意图：10/5–10/6 放假，10/9 使用周三课表，10/10 周六使用周五课表，其他日子不变">
+  {days.map((x, i) => (
+    <div class:list={['ws-d', { changed: !!x.after, off: x.off }]} style={`--i:${i}`}>
+      <p class="ws-h"><b>{x.w}</b><span class="mono">{x.d}</span></p>
+      <div class="ws-col">
+        {x.base.map((v, k) => (
+          <span class:list={['ws-s', { on: v }]} data-to={x.after ? x.after[k] : v}></span>
+        ))}
+        {x.off && <span class="ws-off"></span>}
+      </div>
+      <p class="ws-tag">{x.tag ?? ''}</p>
+    </div>
+  ))}
+  <p class="ws-note">每周课表不变</p>
+</div>

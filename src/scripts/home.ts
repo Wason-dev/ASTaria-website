@@ -1,64 +1,50 @@
-// 首页交互：功能区标签（点击切换 + 自动轮播）和细节区横向卡片。
-// 没有 JS 时：功能区五个画面按顺序排开，卡片可以直接横向滑动。
+// 首页交互：功能区（点击切换 + 自动轮播）和细节区横向卡片。
+// 没有 JS 时：功能区说明全部展开、画面按顺序排开，卡片可以直接横向滑动。
 export function mountHome() {
   const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-  // ---------- 功能区标签 ----------
+  // ---------- 功能区：左列标题 + 右侧大画面 ----------
+  // 点标题：展开它的说明、换右侧画面。不点时自动轮播，当前标题下的细线就是进度。
   const root = document.querySelector<HTMLElement>('[data-tabs]');
   if (root) {
     root.classList.add('live');
-    const tabs = [...root.querySelectorAll<HTMLButtonElement>('[role="tab"]')];
-    const panels = [...root.querySelectorAll<HTMLElement>('[role="tabpanel"]')];
-    const ind = root.querySelector<HTMLElement>('.tab-ind')!;
-    const bar = ind.querySelector('i')!;
+    const items = [...root.querySelectorAll<HTMLElement>('.fi')];
+    const btns = items.map((it) => it.querySelector<HTMLButtonElement>('.fi-btn')!);
+    const panels = [...root.querySelectorAll<HTMLElement>('.panel')];
     let cur = 0;
-    let auto = !reduce; // 用户点过一次之后就不再自动轮播
-
-    const place = () => {
-      const t = tabs[cur];
-      ind.style.setProperty('--x', `${t.offsetLeft}px`);
-      ind.style.setProperty('--w', `${t.offsetWidth}px`);
-    };
-    const restartBar = () => {
-      bar.classList.remove('run');
-      void bar.offsetWidth; // 重新开始填充动画
-      if (auto) bar.classList.add('run');
-    };
-    const select = (i: number, focus = false) => {
-      cur = (i + tabs.length) % tabs.length;
-      tabs.forEach((t, k) => {
+    let auto = !reduce;
+    const select = (i: number) => {
+      cur = (i + items.length) % items.length;
+      items.forEach((it, k) => {
         const on = k === cur;
-        t.setAttribute('aria-selected', String(on));
-        t.tabIndex = on ? 0 : -1;
+        it.classList.toggle('on', on);
+        btns[k].setAttribute('aria-expanded', String(on));
         panels[k].classList.toggle('on', on);
-        panels[k].toggleAttribute('inert', !on);
-        panels[k].setAttribute('aria-hidden', String(!on));
+        // 画出来的图：切到它时重新播一次
+        panels[k].querySelectorAll('[data-play]').forEach((d) => { d.classList.remove('play'); if (on) { void (d as HTMLElement).offsetWidth; d.classList.add('play'); } });
+        const bar = it.querySelector('.fi-bar i')!;
+        bar.classList.remove('run');
+        if (on && auto) { void (bar as HTMLElement).offsetWidth; bar.classList.add('run'); }
       });
-      if (focus) tabs[cur].focus();
-      place();
-      restartBar();
     };
-
-    tabs.forEach((t, i) => t.addEventListener('click', () => { auto = false; root.classList.add('manual'); select(i); }));
-    root.querySelector('[role="tablist"]')!.addEventListener('keydown', (e) => {
-      const k = (e as KeyboardEvent).key;
-      if (k !== 'ArrowRight' && k !== 'ArrowLeft' && k !== 'Home' && k !== 'End') return;
-      e.preventDefault();
-      auto = false; root.classList.add('manual');
-      select(k === 'Home' ? 0 : k === 'End' ? tabs.length - 1 : cur + (k === 'ArrowRight' ? 1 : -1), true);
-    });
-    bar.addEventListener('animationend', () => auto && select(cur + 1));
-    // 指针停在上面、键盘焦点在里面、或滚出屏幕时，轮播暂停
+    btns.forEach((b, i) => b.addEventListener('click', () => { auto = false; root.classList.add('manual'); select(i); }));
+    items.forEach((it) => it.querySelector('.fi-bar i')!.addEventListener('animationend', () => auto && select(cur + 1)));
     const pause = (on: boolean) => root.classList.toggle('paused', on);
     root.addEventListener('pointerenter', () => pause(true));
     root.addEventListener('pointerleave', () => pause(false));
     root.addEventListener('focusin', () => pause(true));
     root.addEventListener('focusout', () => pause(false));
     new IntersectionObserver(([e]) => root.classList.toggle('offscreen', !e.isIntersecting), { threshold: 0.35 }).observe(root);
-    addEventListener('resize', place);
-    document.fonts?.ready.then(place);
     select(0);
   }
+
+  // ---------- 画出来的图：进入视口时播放（play 只加一次），循环动画只在可见时运行（vis） ----------
+  const plays = [...document.querySelectorAll<HTMLElement>('[data-play]')].filter((d) => !d.closest('.panel'));
+  const pio = new IntersectionObserver((es) => es.forEach((e) => {
+    e.target.classList.toggle('vis', e.isIntersecting);
+    if (e.isIntersecting) e.target.classList.add('play');
+  }), { threshold: 0.45 });
+  plays.forEach((d) => pio.observe(d));
 
   // ---------- 细节区卡片 ----------
   const car = document.querySelector<HTMLElement>('[data-carousel]');

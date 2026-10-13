@@ -2,6 +2,11 @@
 import Base from '../layouts/Base.astro';
 import Icon from '../components/Icon.astro';
 import Shot from '../components/Shot.astro';
+import XixiChat from '../components/XixiChat.astro';
+import DayGaps from '../components/DayGaps.astro';
+import WeekShift from '../components/WeekShift.astro';
+import SyncMap from '../components/SyncMap.astro';
+import '../styles/drawn.css';
 import '../styles/home.css';
 import { release, releaseUrl, publishedDate } from '../data/release';
 import homeIdle from '../assets/shots/home.png';
@@ -13,10 +18,8 @@ import focus from '../assets/shots/workbench-focus.png';
 import freeTime from '../assets/shots/free-time.png';
 import horizon from '../assets/shots/horizon.png';
 
-// 功能区：一个大画面 + 一排标签，点击切换，不点时自动轮播。
+// 功能区：左边一列标题（点开显示说明），右边大画面；点击切换，不点时自动轮播。
 const tabs = [
-  { k: '析熙', lead: '说一句，它就排好了。', p: '「物理实验报告明天交，大概 45 分钟。」析熙记下事项，放进今晚 18:00–18:45 的空档。回执只写实际保存的内容，创建和排程可以一起撤销。',
-    img: home, alt: 'ASTaria 首页：析熙对话与下方回执，列出截止、用时、安排时段与撤销入口' },
   { k: '日程', lead: '调课，只动那一天。', p: '10/5–10/6 放假，10/9 用周三课表，10/10 周六用周五课表。每周课表不动，校庆活动和已排的任务照常保留。',
     img: planner, alt: 'ASTaria 日程周视图：10/5–10/6 放假，10/9 使用周三课表，10/10 周六使用周五课表' },
   { k: '工作台', lead: '现在，先做哪一件。', p: '此刻能开始的事项排在最前，截止和用时就在旁边。进入专注，析熙结合手上这件事和你对话，还能附一张图片。',
@@ -28,6 +31,7 @@ const tabs = [
 ];
 // 细节区：横向卡片
 const cards = [
+  { lead: '回执只写实际保存的内容。', p: '聊天保留析熙的回复，下方回执核对截止、用时和安排，可以一并撤销创建与排程。', img: home, alt: 'ASTaria 首页展开：析熙对话、执行回执与当天日历' },
   { lead: '调课当天，一眼看清。', p: '10/9 的周三课表、课程地点、已排任务和真实剩余空档，不用改整个每周课表。', img: plannerDay, alt: 'ASTaria 日程日视图：10 月 9 日临时使用周三课表' },
   { lead: '从能开始的那件事进入专注。', p: '工作台同时列出截止、用时与近期任务。', img: workbench, alt: 'ASTaria 工作台：真实事项、近期截止与专注入口' },
   { lead: '收起对话，回到黑洞。', p: '首页保留当天事项、日历与析熙入口。', img: homeIdle, alt: 'ASTaria 黑洞首页：当天安排与析熙入口' },
@@ -55,24 +59,44 @@ const cards = [
     <Shot src={homeIdle} alt="ASTaria 首页：黑洞场景、当天安排与析熙入口" eager sizes="(min-width: 1100px) 1100px, 94vw" />
   </figure>
 
+  <!-- 和析熙聊 -->
+  <section class="chat" data-dim aria-labelledby="x-h">
+    <div class="chat-copy">
+      <p class="eyebrow" data-reveal>析熙</p>
+      <h2 id="x-h" class="headline" data-reveal="lines"><span class="ln"><span>说一句</span></span><span class="ln"><span>它就排好了</span></span></h2>
+      <p class="chat-body" data-reveal="up">析熙读取你真实的课程和空档，把事项放进去。每次修改都有回执，<b>只写实际保存的内容</b>，可以一键撤销。</p>
+      <p class="chat-note" data-reveal>演示对话，数据为虚构。</p>
+    </div>
+    <div class="chat-demo" data-reveal="up"><XixiChat /></div>
+  </section>
+
+  <!-- 空档：画出来的一天 -->
+  <section class="gaps" aria-labelledby="g-h">
+    <p class="eyebrow" data-reveal>排程</p>
+    <h2 id="g-h" class="headline sm" data-reveal="lines"><span class="ln"><span>放进真实的空档</span></span></h2>
+    <p class="gaps-body" data-reveal="up">析熙先看这一天已经被课程和任务占住的时间，再把新事项放进空着的时段，不和已有安排重叠。</p>
+    <div data-reveal="up"><DayGaps /></div>
+  </section>
+
   <!-- 功能区 -->
-  <section class="features" data-dim aria-labelledby="f-h">
-    <p class="eyebrow" data-reveal>五个地方</p>
-    <h2 id="f-h" class="headline" data-reveal="lines"><span class="ln"><span>从一句话</span></span><span class="ln"><span>到一天的地平线</span></span></h2>
-    <div class="tabs" data-tabs data-reveal="up">
-      <div class="stage">
-        {tabs.map((t, i) => (
-          <figure class:list={['panel', { on: i === 0 }]} role="tabpanel" id={`tp${i}`} aria-labelledby={`tb${i}`}>
-            <Shot src={t.img} alt={t.alt} eager={i === 0} sizes="(min-width: 1180px) 1140px, 94vw" />
-            <figcaption><strong>{t.lead}</strong>{t.p}</figcaption>
-          </figure>
-        ))}
+  <section class="features" aria-labelledby="f-h">
+    <div class="feat" data-tabs>
+      <div class="feat-side">
+        <p class="eyebrow" data-reveal>每天用到的四个地方</p>
+        <h2 id="f-h" class="headline sm" data-reveal="lines"><span class="ln"><span>从课表</span></span><span class="ln"><span>到一天的地平线</span></span></h2>
+        <ul class="feat-list" data-reveal="up">
+          {tabs.map((t, i) => (
+            <li class:list={['fi', { on: i === 0 }]}>
+              <button type="button" class="fi-btn" aria-expanded={i === 0 ? 'true' : 'false'} aria-controls={`fd${i}`}><span class="fi-k">{t.k}</span><span class="fi-lead">{t.lead}</span><span class="fi-bar" aria-hidden="true"><i></i></span></button>
+              <div class="fi-desc" id={`fd${i}`}><p>{t.p}</p></div>
+            </li>
+          ))}
+        </ul>
       </div>
-      <div class="tablist" role="tablist" aria-label="ASTaria 的功能">
+      <div class="feat-stage" data-reveal="up">
         {tabs.map((t, i) => (
-          <button type="button" role="tab" id={`tb${i}`} aria-controls={`tp${i}`} aria-selected={i === 0 ? 'true' : 'false'} tabindex={i === 0 ? 0 : -1}>{t.k}</button>
+          <div class:list={['panel', { on: i === 0 }]}>{t.k === '日程' ? <WeekShift /> : <Shot src={t.img} alt={t.alt} sizes="(min-width: 1180px) 760px, 94vw" />}</div>
         ))}
-        <span class="tab-ind" aria-hidden="true"><i></i></span>
       </div>
     </div>
   </section>
@@ -108,6 +132,7 @@ const cards = [
         <p class="spec-n">共享文件夹本身不是端到端加密存储。</p>
       </div>
     </div>
+    <div class="data-map" data-reveal="up"><SyncMap /></div>
   </section>
 
   <!-- 越过视界：推进程度跟着这一段的滚动走，约三屏 -->
@@ -130,7 +155,9 @@ const cards = [
   <script>
     import { mountBlackHole } from '../scripts/blackhole';
     import { mountHome } from '../scripts/home';
+    import { mountXixiDemo } from '../scripts/xixi-demo';
     if (!mountBlackHole(document.getElementById('bh')!)) document.documentElement.classList.add('bh-off');
     mountHome();
+    mountXixiDemo();
   </script>
 </Base>

@@ -1,0 +1,28 @@
+---
+// 和析熙聊：一个按真实界面复刻的聊天窗，自动演示几段对话，也可以点场景切换。
+// 第一段对话与应用截图、README 中的演示数据逐字一致；另外两段是按已发布功能写的示意。
+// 没有 JS 时直接显示第一段的完整对话。
+import { scenes } from '../data/xixi';
+const first = scenes[0];
+---
+
+<div class="xx" data-xixi>
+  <div class="xx-win">
+    <div class="xx-top"><span class="xx-name">析熙</span><span class="xx-sub">对话记录</span></div>
+    <div class="xx-log">
+      <div class="msg me"><span class="who">你</span><p>{first.user}</p></div>
+      <div class="msg ai"><span class="who">析熙</span><p>{first.reply}</p></div>
+      {first.receipt && (
+        <div class="rcpt">
+          <p class="rcpt-t">{first.receipt.title}<span class="rcpt-u">{first.receipt.undo}</span></p>
+          {first.receipt.lines.map((l) => <p class="rcpt-l">{l}</p>)}
+        </div>
+      )}
+    </div>
+    <div class="xx-input"><span class="xx-field">哪里需要一起想想</span><span class="xx-send">发给析熙</span></div>
+  </div>
+  <div class="xx-chips" role="group" aria-label="对话示例">
+    {scenes.map((s, i) => <button type="button" class="chip" data-scene={i} aria-pressed={i === 0 ? 'true' : 'false'}>{s.chip}</button>)}
+  </div>
+  <script type="application/json" data-scenes set:html={JSON.stringify(scenes)} />
+</div>
