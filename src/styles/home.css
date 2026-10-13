@@ -219,7 +219,8 @@ html.bh-off .dive-cta { opacity: 1 !important; transform: none !important; visib
   .feat.live .panel { position: absolute; inset: 0 0 auto 0; }
   .feat.live .panel.on { position: relative; }
   .feat-list { order: 4; margin-top: 20px; }
-  .xx-win { height: 590px; }
+  /* 窄屏：窗口高度按最长的对话量过——360 宽的手机上最长约 375px，390 宽更短；只留够它，不再空出一大块 */
+  .xx-win { height: 545px; }
   .xx-log { padding: 16px; gap: 12px; }
   .msg { max-width: 92%; }
   .xx, .chat-demo:hover .xx { transform: none; }

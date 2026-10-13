@@ -34,7 +34,7 @@ const { title, description, page, eyebrow, lead, toc } = Astro.props;
     </header>
     {toc && (
       <nav class="spy glass" data-glass aria-label="本页目录（跟随）" data-spy>
-        {toc.map(([id, label]) => <a href={`#${id}`} data-spy-to={id}>{label}</a>)}
+        <div class="spy-in">{toc.map(([id, label]) => <a href={`#${id}`} data-spy-to={id}>{label}</a>)}</div>
       </nav>
     )}
     <div class="doc-body wrap" data-dim>
@@ -86,9 +86,14 @@ const { title, description, page, eyebrow, lead, toc } = Astro.props;
         a.oncancel = done;
       });
     });
-    // 卡片滚到时浮现
-    const reveal = new IntersectionObserver((es) => es.forEach((e) => { if (e.isIntersecting) { e.target.classList.add('in'); reveal.unobserve(e.target); } }), { rootMargin: '0px 0px -8% 0px', threshold: 0.01 });
-    cards.forEach((c) => reveal.observe(c));
+    // 卡片浮现：打开页面时已经在屏幕里的，立刻依次出现；下面的，离屏幕还有半屏时就先出现，滑到时已经在了。
+    // 问答这种小卡片不做浮现，一开始就在（一张张冒出来像是在加载）
+    cards.filter((c) => c.matches('details.qa')).forEach((c) => c.classList.add('in'));
+    const rest = cards.filter((c) => !c.classList.contains('in'));
+    let k = 0;
+    rest.forEach((c) => { if (c.getBoundingClientRect().top < innerHeight) { c.style.transitionDelay = `${k++ * 70}ms`; c.classList.add('in'); } });
+    const reveal = new IntersectionObserver((es) => es.forEach((e) => { if (e.isIntersecting) { e.target.classList.add('in'); reveal.unobserve(e.target); } }), { rootMargin: '0px 0px 50% 0px', threshold: 0 });
+    rest.filter((c) => !c.classList.contains('in')).forEach((c) => reveal.observe(c));
     // 跟随目录：标题区滚出去以后出现；标出正在读的那一节，并把它滚到目录条的可见范围里
     const spy = document.querySelector<HTMLElement>('[data-spy]');
     if (spy) {
@@ -105,7 +110,8 @@ const { title, description, page, eyebrow, lead, toc } = Astro.props;
         current = id;
         links.forEach((a) => a.toggleAttribute('aria-current', a.dataset.spyTo === id));
         const on = links.find((a) => a.dataset.spyTo === id);
-        if (on) spy.scrollTo({ left: on.offsetLeft - spy.clientWidth / 2 + on.offsetWidth / 2, behavior: 'smooth' });
+        const inner = spy.querySelector<HTMLElement>('.spy-in')!;
+        if (on) inner.scrollTo({ left: on.offsetLeft - inner.clientWidth / 2 + on.offsetWidth / 2, behavior: 'smooth' });
       };
       addEventListener('scroll', () => { if (!raf) raf = requestAnimationFrame(tick); }, { passive: true });
       tick();

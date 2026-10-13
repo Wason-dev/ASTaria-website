@@ -28,9 +28,8 @@ const rel = (tag: string) => `https://github.com/${release.repo}/releases/tag/${
 
   <h2 id="h-older" class="tl-h">更早的版本</h2>
   {older.map((e) => (
-      <details class="qa tl" id={e.tag}>
+      <details class="qa" id={e.tag}>
         <summary>
-          <span class="tl-dot" aria-hidden="true"></span><span class="tl-line" aria-hidden="true"></span>
           <span>{e.name} <span class="mono v">{e.version}</span> <span class="d">{e.date}</span></span>
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="m6 9 6 6 6-6" /></svg>
         </summary>
@@ -46,12 +45,6 @@ const rel = (tag: string) => `https://github.com/${release.repo}/releases/tag/${
   .next-v { display: flex; align-items: center; gap: 16px; }
   .next-v { margin-top: 8px !important; font-size: 28px !important; font-weight: 600; color: var(--fg) !important; }
   .tl-h { margin: 28px 0 0 4px; font-size: clamp(24px, 2.4vw, 30px); }
-  /* 时间线：每块小卡片左边一个点，点之间连一条细线 */
-  .tl { margin-left: 26px; }
-  /* 点和线用真元素：卡片的 ::before / ::after 已经是玻璃的亮边和高光 */
-  .tl-dot { position: absolute; left: -26px; top: 29px; width: 9px; height: 9px; margin-left: -4px; border-radius: 50%; background: var(--gold-2); box-shadow: 0 0 0 4px rgb(236 211 164 / 0.14), 0 0 14px rgb(236 211 164 / 0.6); }
-  .tl-line { position: absolute; left: -26px; top: 42px; bottom: -34px; width: 1px; background: linear-gradient(rgb(236 211 164 / 0.45), rgb(236 211 164 / 0.08)); }
-  .tl:last-of-type .tl-line { display: none; }
   .v { color: var(--fg-3); font-size: 0.55em; font-weight: 400; margin-left: 8px; }
   .d { color: var(--fg-4); font-size: 14px; font-weight: 400; margin-left: 10px; }
   .ver .small { margin-top: 8px; }
