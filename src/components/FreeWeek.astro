@@ -24,9 +24,9 @@ const sessions = [
       <div class="fw-d">
         <p class="fw-dh">周{d}</p>
         <div class="fw-col">
-          {busy[i].map((v) => <span class:list={['fw-s', { busy: v }]}></span>)}
+          {busy[i].map((v, k) => <span class:list={['fw-s', { busy: v }]} style={`grid-row:${k + 1}`}></span>)}
           {sessions.filter((s) => s[0] === i).map((s, k) => (
-            <span class:list={['fw-p', s[2], { done: s[3] }]} style={`--slot:${s[1]};--i:${i * 2 + k}`}></span>
+            <span class:list={['fw-p', s[2], { done: s[3] }]} style={`grid-row:${Number(s[1]) + 1};--i:${i * 2 + k}`}></span>
           ))}
         </div>
       </div>

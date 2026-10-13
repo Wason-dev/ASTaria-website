@@ -32,11 +32,12 @@ float noise(vec2 p){ vec2 i = floor(p), f = fract(p); vec2 w = f*f*(3.0-2.0*f);
 float fbm(vec2 p){ return .57*noise(p) + .28*noise(p*2.03+13.1) + .15*noise(p*4.09+21.7); }
 
 // 每个半径按开普勒角速度 ω = k / r^1.5 推进自己的相位。
+// 转向：从首页机位看，靠近镜头的一侧向右运动——右边被多普勒增亮、左边暗（与应用画面一致）。
 vec4 diskAtTime(vec3 p, vec3 ray, float order, float flowTime){
   float r = length(p.xz);
   float inner = smoothstep(2.95,3.24,r);
   float outer = 1.0-smoothstep(8.0,14.5,r);
-  float phase = atan(p.z,p.x) - flowTime*1.9/pow(max(r,3.0),1.5);
+  float phase = atan(p.z,p.x) + flowTime*1.9/pow(max(r,3.0),1.5);
   vec2 orbit = vec2(cos(phase),sin(phase));
   float turbulence = fbm(orbit*3.7 + vec2(r*.45,r*.7));
   float fine = noise(orbit*13.0 + vec2(r*9.0,-r*5.0));
@@ -52,7 +53,7 @@ vec4 diskAtTime(vec3 p, vec3 ray, float order, float flowTime){
   float density = (.08 + .85*pow(broad,1.8) + .7*pow(mid,2.0) + .35*thin + .14*silk) * (.52+.8*turbulence);
   float heat = pow(3.0/max(r,3.0),1.9) * inner * outer;
   float beta = .30 * sqrt(3.0/max(r,3.0));
-  vec3 velocity = normalize(vec3(-p.z,0.0,p.x));
+  vec3 velocity = normalize(vec3(p.z,0.0,-p.x));
   float doppler = sqrt(1.0-beta*beta)/(1.0-beta*dot(velocity,-normalize(ray)));
   float radiance = heat * density * pow(doppler,3.0) * 6.7;
   vec3 warm = mix(vec3(.24,.095,.029), vec3(1.0,.76,.46), clamp(heat*2.0,0.0,1.0));

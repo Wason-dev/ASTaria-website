@@ -5,6 +5,9 @@ import Shot from '../components/Shot.astro';
 import XixiChat from '../components/XixiChat.astro';
 import DayGaps from '../components/DayGaps.astro';
 import WeekShift from '../components/WeekShift.astro';
+import WorkNow from '../components/WorkNow.astro';
+import FreeWeek from '../components/FreeWeek.astro';
+import HorizonArc from '../components/HorizonArc.astro';
 import SyncMap from '../components/SyncMap.astro';
 import XixiMore from '../components/XixiMore.astro';
 import '../styles/drawn.css';
@@ -98,7 +101,7 @@ const cards = [
       </div>
       <div class="feat-stage">
         {tabs.map((t, i) => (
-          <div class:list={['panel', { on: i === 0 }]}>{t.k === '日程' ? <WeekShift /> : <div class="shot-pane glass" data-glass><Shot src={t.img} alt={t.alt} sizes="(min-width: 1180px) 760px, 94vw" /></div>}</div>
+          <div class:list={['panel', { on: i === 0 }]}>{t.k === '日程' ? <WeekShift /> : t.k === '工作台' ? <WorkNow /> : t.k === '余时' ? <FreeWeek /> : <HorizonArc />}</div>
         ))}
       </div>
     </div>
