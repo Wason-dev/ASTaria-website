@@ -219,9 +219,17 @@ html.bh-off .dive-cta { opacity: 1 !important; transform: none !important; visib
   .feat.live .panel { position: absolute; inset: 0 0 auto 0; }
   .feat.live .panel.on { position: relative; }
   .feat-list { order: 4; margin-top: 20px; }
-  /* 窄屏：窗口高度按最长的对话量过——360 宽的手机上最长约 375px，390 宽更短；只留够它，不再空出一大块 */
-  .xx-win { height: 545px; }
-  .xx-log { padding: 16px; gap: 12px; }
+  /* 窄屏：聊天窗整体收紧——标题栏、内边距、气泡间距和字号都小一号，再按最长的那段对话量出高度 */
+  .xx-win { height: var(--xx-h, 470px); border-radius: 22px; }
+  .xx-top { padding: 12px 16px 10px; }
+  .xx-log { padding: 12px 14px; gap: 9px; }
+  .msg .who { margin-bottom: 4px; }
+  .msg p { font-size: 13.5px; line-height: 1.6; }
+  .msg.me p { padding: 9px 12px; }
+  .rcpt { padding: 11px 13px; }
+  .xx-input { margin: 0 12px 12px; padding: 9px 9px 9px 13px; }
+  .xx-chips { margin-top: 14px; }
+  .chat { margin-bottom: 14vh; gap: 24px; }
   .msg { max-width: 92%; }
   .xx, .chat-demo:hover .xx { transform: none; }
   .dive-line { letter-spacing: 0.18em; padding-left: 0.18em; }

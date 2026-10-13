@@ -106,4 +106,28 @@ export function mountXixiDemo() {
     if (visible && !started) { started = true; play(0); }
   }, { threshold: 0.4 }).observe(root);
   if (reduce) full(scenes[0]);
+
+  // 窄屏的窗口高度：把每段对话放进一个看不见的副本里量一遍，取最高那段，刚好放下、不留大空白。
+  // 只在窄屏（CSS 里用 --xx-h）生效；宽屏仍是固定高度
+  const win = root.querySelector<HTMLElement>('.xx-win')!;
+  const fit = () => {
+    if (!matchMedia('(max-width: 899px)').matches) { win.style.removeProperty('--xx-h'); return; }
+    const probe = log.cloneNode(false) as HTMLElement;
+    probe.style.cssText = 'position:absolute;visibility:hidden;left:0;top:0;height:auto;flex:none;justify-content:flex-start';
+    probe.style.width = `${log.clientWidth}px`;
+    win.append(probe);
+    let tallest = 0;
+    for (const sc of scenes) {
+      probe.replaceChildren(msg('me', sc.user), msg('ai', sc.reply));
+      const x = extra(sc);
+      if (x) probe.append(x);
+      probe.querySelectorAll('.pop').forEach((e) => e.classList.remove('pop'));
+      tallest = Math.max(tallest, probe.offsetHeight);
+    }
+    probe.remove();
+    win.style.setProperty('--xx-h', `${win.offsetHeight - log.offsetHeight + tallest + 4}px`);
+  };
+  fit();
+  addEventListener('resize', fit);
+  document.fonts?.ready.then(fit);
 }
