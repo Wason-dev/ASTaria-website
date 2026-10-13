@@ -6,10 +6,11 @@
 //   滚进内容区（[data-dim]）时慢慢压暗（不模糊）；接近结尾再慢慢恢复。
 //   结尾 [data-cam="dive"] 约三屏：推进程度由这一段的滚动位置决定，加一层一阶平滑，不会过冲。
 import { VERT, FRAG } from './blackhole-shader';
+import { createGeodesicLut } from './geodesics';
 
 interface Pose { dist: number; incl: number; yaw: number; fov: number; sx: number; sy: number; expo: number; roll?: number }
 
-const DIST = 32;
+const DIST = 30; // 与测地线查找表的镜头半径一致
 const DISC_SPAN = 4.2; // 盘面可见的半宽 ≈ 阴影半径 × 4.2（含外圈淡光）
 const YAW0 = -0.55;
 const YAW_RATE = 0.00055; // 弧度 / 秒，一整圈约 3 小时
@@ -44,6 +45,29 @@ export function mountBlackHole(host: HTMLElement) {
     return false;
   }
   gl.useProgram(prog);
+  // 测地线查找表：页面打开时算一次（约 300 万步 RK4），之后着色器只查表
+  const lut = createGeodesicLut(DIST);
+  const linearFloat = !!gl.getExtension('OES_texture_float_linear');
+  const tex = (unit: number, w: number, h: number, data: Float32Array, rgba: boolean) => {
+    const t = gl.createTexture();
+    gl.activeTexture(gl.TEXTURE0 + unit);
+    gl.bindTexture(gl.TEXTURE_2D, t);
+    // 没有浮点线性过滤时退回半精度（WebGL2 核心支持线性过滤）
+    const internal = rgba ? (linearFloat ? gl.RGBA32F : gl.RGBA16F) : (linearFloat ? gl.R32F : gl.R16F);
+    gl.texImage2D(gl.TEXTURE_2D, 0, internal, w, h, 0, rgba ? gl.RGBA : gl.RED, gl.FLOAT, data);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, rgba ? gl.NEAREST : gl.LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, rgba ? gl.NEAREST : gl.LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+  };
+  tex(0, lut.width, lut.height, lut.inverseRadius, false);
+  tex(1, lut.width, 1, lut.termination, true);
+  gl.uniform1i(gl.getUniformLocation(prog, 'uGeo'), 0);
+  gl.uniform1i(gl.getUniformLocation(prog, 'uTerm'), 1);
+  gl.uniform2f(gl.getUniformLocation(prog, 'uLutSize'), lut.width, lut.height);
+  gl.uniform1f(gl.getUniformLocation(prog, 'uMaxPhi'), lut.maxPhi);
+  gl.uniform1f(gl.getUniformLocation(prog, 'uMaxImpact'), lut.maxImpact);
+  gl.uniform1f(gl.getUniformLocation(prog, 'uLutR'), lut.cameraRadius);
   gl.bindBuffer(gl.ARRAY_BUFFER, gl.createBuffer());
   gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 3, -1, -1, 3]), gl.STATIC_DRAW);
   gl.enableVertexAttribArray(0);
@@ -111,7 +135,7 @@ export function mountBlackHole(host: HTMLElement) {
       yaw: YAW0 + (still ? 0 : YAW_RATE * t),
       sx: (slot.cx - W / 2) / H,
       sy: (H / 2 - slot.cy) / H,
-      expo: 1.05,
+      expo: 1.0,
       roll: slotEl ? 0 : 0.18,
     };
   };
@@ -121,10 +145,11 @@ export function mountBlackHole(host: HTMLElement) {
     const a = W / H, portrait = a < 0.95;
     return {
       dist: from.dist, fov: shadowTan(from.dist) / (portrait ? 0.3 : 0.52), incl: 0.1, yaw: from.yaw,
-      sx: portrait ? 0.18 : a * 0.48, sy: portrait ? 0.22 : 0.0, expo: 1.2, roll: 0.12,
+      sx: portrait ? 0.18 : a * 0.48, sy: portrait ? 0.22 : 0.0, expo: 1.0, roll: 0.12,
     };
   };
   const inside = (from: Pose): Pose => {
+    // 真正飞进去：距离从 30 缩到 3.2，镜头转向俯视，阴影长到盖满整个屏幕
     const dist = 3.2;
     const vf = (shadowTan(dist) / Math.hypot(W / H / 2, 0.5)) * 0.85;
     return { dist, fov: vf, incl: 1.36, yaw: from.yaw, sx: 0, sy: 0, expo: 1.05, roll: 0 };
