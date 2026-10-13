@@ -21,10 +21,10 @@
 /* 开场背后是整片亮盘面：玻璃比别处稍暗一点（不提亮、垫一层极淡的暗底），模糊照旧 */
 .hp-pane {
   padding: clamp(26px, 2.6vw, 38px); border-radius: 28px; text-shadow: 0 1px 18px rgb(0 0 0 / 0.5);
-  /* 很透（底色约 20–30%）：背后的盘面强模糊后几乎原样透出来，只留一层很淡的暖灰和亮边 */
-  background: linear-gradient(180deg, rgb(255 255 255 / 0.04), rgb(255 255 255 / 0.01) 42%, rgb(255 255 255 / 0.02)), rgb(20 18 16 / 0.22);
-  -webkit-backdrop-filter: blur(34px) saturate(140%);
-  backdrop-filter: blur(34px) saturate(140%);
+  /* 很透：底色约 10%，背后的盘面强模糊后几乎原样透出来，只留亮边和一层极淡的暖灰 */
+  background: linear-gradient(180deg, rgb(255 255 255 / 0.03), transparent 42%, rgb(255 255 255 / 0.015)), rgb(20 18 16 / 0.1);
+  -webkit-backdrop-filter: blur(30px) saturate(130%);
+  backdrop-filter: blur(30px) saturate(130%);
 }
 .hp-pane .word { text-shadow: none; filter: drop-shadow(0 2px 18px rgb(0 0 0 / 0.35)); }
 .hp-pane.small { padding: 22px clamp(22px, 2.4vw, 30px); border-radius: 24px; }
@@ -205,7 +205,10 @@ html.bh-off .dive-cta { opacity: 1 !important; transform: none !important; visib
   .feat-side { display: contents; }
   .feat-side .eyebrow { order: 1; }
   .feat-side .headline { order: 2; }
-  .feat-stage { order: 3; margin-top: 28px; }
+  .feat-stage { order: 3; margin-top: 28px; position: relative; }
+  /* 窄屏：画面高度跟着当前这一张走（一周课表比截图高，不能把每张都撑到最高那张） */
+  .feat.live .panel { position: absolute; inset: 0 0 auto 0; }
+  .feat.live .panel.on { position: relative; }
   .feat-list { order: 4; margin-top: 20px; }
   .xx-win { height: 590px; }
   .xx-log { padding: 16px; gap: 12px; }
