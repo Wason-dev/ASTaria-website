@@ -193,6 +193,9 @@ code, pre, .mono { font-family: var(--mono); font-variant-numeric: tabular-nums;
 .js [data-reveal='word'].in { transform: none; letter-spacing: -0.04em; }
 [data-reveal='lines'] .ln { display: block; overflow: hidden; padding-bottom: 0.08em; margin-bottom: -0.08em; }
 [data-reveal='lines'] .ln > span { display: block; }
+/* 一行里有几段（比如其中一段是空心字）：并排、各自升起。带滤镜的那段自己做位移，不嵌在会动的父元素里，否则会先停在终点、再闪回来 */
+[data-reveal='lines'] .ln-row { white-space: nowrap; }
+[data-reveal='lines'] .ln-row > span { display: inline-block; }
 .js [data-reveal='lines'] { opacity: 1; }
 .js [data-reveal='lines'] .ln > span { transform: translate3d(0, 105%, 0); transition: transform 1.2s var(--ease); }
 .js [data-reveal='lines'] .ln:nth-child(2) > span { transition-delay: 0.12s; }

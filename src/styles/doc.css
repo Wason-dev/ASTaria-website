@@ -17,16 +17,37 @@
 .toc a:hover { text-decoration: underline; text-underline-offset: 4px; }
 
 .doc-body { margin-top: 8vh; }
-/* 玻璃阅读面：背景黑洞在这里被重度模糊、压暗，正文对比度稳定 */
-.sheet {
-  padding: clamp(28px, 5vw, 72px);
-  border-radius: clamp(24px, 3vw, 40px);
-  background: linear-gradient(180deg, rgb(14 14 16 / 0.62), rgb(8 8 10 / 0.72));
-  -webkit-backdrop-filter: blur(40px) saturate(160%);
-  backdrop-filter: blur(40px) saturate(160%);
+/* 正文：每一节一块单独的亮玻璃卡片（脚本给它们加上 .glass，带折射亮边和跟随指针的高光）。
+   没有 JS 时这里的样式本身就是一块不带高光的玻璃。 */
+.sheet { display: grid; gap: 20px; }
+.sheet > section, .sheet > details {
+  position: relative; scroll-margin-top: 120px;
+  padding: clamp(26px, 3.6vw, 52px);
+  border-radius: clamp(22px, 2.4vw, 32px);
+  background: linear-gradient(180deg, rgb(255 255 255 / 0.08), rgb(255 255 255 / 0.03) 42%, rgb(255 255 255 / 0.04)), rgb(14 13 12 / 0.34);
+  -webkit-backdrop-filter: blur(28px) saturate(170%);
+  backdrop-filter: blur(28px) saturate(170%);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.32), inset 0 0 0 1px rgb(255 255 255 / 0.08), 0 30px 70px -30px rgb(0 0 0 / 0.8);
 }
-.sheet > section { padding-top: 56px; margin-top: 56px; border-top: 1px solid var(--line-2); }
-.sheet > section:first-child { margin-top: 0; padding-top: 0; border-top: 0; }
+/* 有 JS：卡片滚到时从下方浮现 */
+.js .sheet > .card { opacity: 0; transform: translate3d(0, 26px, 0) scale(0.99); transition: opacity 0.8s var(--ease), transform 1s var(--ease); }
+.js .sheet > .card.in { opacity: 1; transform: none; }
+/* 正文行宽不超过阅读舒适的长度；表格、代码、安装包卡片照常占满 */
+.sheet p, .sheet ul, .sheet ol { max-width: 46em; }
+@media (prefers-reduced-motion: reduce) { .js .sheet > .card { transform: none; transition: opacity 0.3s linear; } }
+
+/* 跟随目录：标题区滚出去以后，在导航栏下方浮出一条玻璃目录 */
+.spy {
+  position: fixed; z-index: 40; top: 64px; left: 50%; display: flex; gap: 4px; max-width: min(calc(100vw - 32px), 960px); padding: 5px;
+  border-radius: 999px; overflow-x: auto; scrollbar-width: none;
+  opacity: 0; visibility: hidden; transform: translate(-50%, -10px);
+  transition: opacity 0.4s var(--ease), transform 0.5s var(--ease), visibility 0s linear 0.5s;
+}
+.spy::-webkit-scrollbar { display: none; }
+.spy.show { opacity: 1; visibility: visible; transform: translate(-50%, 0); transition: opacity 0.4s var(--ease), transform 0.5s var(--ease), visibility 0s; }
+.spy a { flex: none; padding: 7px 14px; border-radius: 999px; font-size: 13px; color: var(--fg-2); white-space: nowrap; transition: color 300ms var(--ease), background-color 300ms var(--ease); }
+.spy a:hover { color: var(--fg); background: rgb(255 255 255 / 0.08); }
+.spy a[aria-current] { color: #0b0a08; background: linear-gradient(180deg, #fffdf9, #ebe5da); }
 .doc-body h2 { font-size: clamp(28px, 3vw, 36px); line-height: 1.2; }
 .doc-body h3 { margin-top: 36px; font-size: 21px; }
 .doc-body p, .doc-body li { color: var(--fg-2); font-size: 17px; line-height: 1.75; }
@@ -70,18 +91,23 @@
 .kv dt { color: var(--fg-3); padding-right: 28px; }
 .kv dd { margin: 0; color: var(--fg); overflow-wrap: anywhere; }
 
-details.qa { border-top: 1px solid var(--line-2); }
-details.qa:last-of-type { border-bottom: 1px solid var(--line-2); }
+/* 问答：每一问一块小玻璃卡片；展开、收起有高度动画（支持的浏览器） */
+.sheet > details.qa { padding: 0 clamp(22px, 3vw, 36px); }
 details.qa summary {
-  display: flex; justify-content: space-between; gap: 20px; padding: 22px 0;
-  list-style: none; cursor: pointer; font-size: 19px; font-weight: 600; color: var(--fg);
+  display: flex; justify-content: space-between; align-items: center; gap: 20px; padding: 22px 0;
+  list-style: none; cursor: pointer; font-size: 18px; font-weight: 600; color: var(--fg);
 }
 details.qa summary::-webkit-details-marker { display: none; }
-details.qa summary svg { flex: none; width: 20px; height: 20px; color: var(--fg-3); transition: transform 300ms var(--ease); }
-details.qa[open] summary svg { transform: rotate(180deg); }
+details.qa summary svg { flex: none; width: 20px; height: 20px; color: var(--fg-3); transition: transform 400ms var(--ease), color 300ms var(--ease); }
+details.qa summary:hover svg { color: var(--gold-2); }
+details.qa[open] summary svg { transform: rotate(180deg); color: var(--gold-2); }
 details.qa > div { padding: 0 0 24px; }
 details.qa > div p { color: var(--fg-2); }
 details.qa > div p + p { margin-top: 12px; }
+:root { interpolate-size: allow-keywords; }
+details.qa::details-content { block-size: 0; overflow: clip; transition: block-size 0.5s var(--ease), content-visibility 0.5s allow-discrete; }
+details.qa[open]::details-content { block-size: auto; }
+@media (prefers-reduced-motion: reduce) { details.qa::details-content { transition: none; } }
 
 @media (max-width: 600px) {
   .kv { grid-template-columns: minmax(0, 1fr); }

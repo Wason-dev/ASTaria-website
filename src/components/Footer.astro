@@ -1,8 +1,8 @@
 ---
 import { release, releaseUrl, repoUrl, publishedDate } from '../data/release';
 const cols = [
-  { h: '产品', items: [['/', '概览'], ['/download/', '下载'], ['/changelog/', '更新记录']] },
-  { h: '帮助', items: [['/install/', '安装说明'], ['/security/', '安全与隐私'], ['/faq/', '常见问题']] },
+  { h: '产品', items: [['/', '首页'], ['/download/', '下载与安装'], ['/changelog/', '更新记录']] },
+  { h: '帮助', items: [['/security/', '安全与隐私'], ['/faq/', '常见问题']] },
   { h: '源码', items: [[repoUrl, 'GitHub'], [releaseUrl, `${release.displayName} Release`], [`${repoUrl}/issues`, '反馈问题']] },
 ];
 ---

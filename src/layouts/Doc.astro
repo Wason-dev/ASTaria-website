@@ -1,5 +1,6 @@
 ---
-// 说明类页面：标题区与首页同一网格——文字在左栏，黑洞落在右栏的 [data-hole] 槽位里。正文落在一块玻璃阅读面上。
+// 说明类页面：标题区与首页同一网格——文字在左栏，黑洞落在右栏的 [data-hole] 槽位里。
+// 正文每一节是一块单独的亮玻璃卡片，滚到时依次浮现；有目录的页面，往下读时顶部浮出一条玻璃目录，标出正在读的那一节。
 import Base from './Base.astro';
 import '../styles/doc.css';
 
@@ -31,8 +32,13 @@ const { title, description, page, eyebrow, lead, toc } = Astro.props;
       </div>
       <div class="hole" data-hole aria-hidden="true"></div>
     </header>
-    <div class="doc-body wrap">
-      <div class="sheet glass" data-glass>
+    {toc && (
+      <nav class="spy glass" data-glass aria-label="本页目录（跟随）" data-spy>
+        {toc.map(([id, label]) => <a href={`#${id}`} data-spy-to={id}>{label}</a>)}
+      </nav>
+    )}
+    <div class="doc-body wrap" data-dim>
+      <div class="sheet">
         <slot />
       </div>
     </div>
@@ -41,8 +47,35 @@ const { title, description, page, eyebrow, lead, toc } = Astro.props;
     import { mountBlackHole } from '../scripts/blackhole';
     import { mountGlass } from '../scripts/glass';
     const bh = document.getElementById('bh')!;
+    // 每一节变成一块亮玻璃卡片（没有 JS 时 doc.css 里有一份不带高光的玻璃样式）
+    const cards = [...document.querySelectorAll<HTMLElement>('.sheet > section, .sheet > details')];
+    cards.forEach((c) => { c.classList.add('glass', 'card'); c.dataset.glass = ''; });
     if (!mountBlackHole(bh)) document.documentElement.classList.add('bh-off');
     mountGlass();
+    // 卡片滚到时浮现
+    const reveal = new IntersectionObserver((es) => es.forEach((e) => { if (e.isIntersecting) { e.target.classList.add('in'); reveal.unobserve(e.target); } }), { rootMargin: '0px 0px -8% 0px', threshold: 0.01 });
+    cards.forEach((c) => reveal.observe(c));
+    // 跟随目录：标题区滚出去以后出现；标出正在读的那一节，并把它滚到目录条的可见范围里
+    const spy = document.querySelector<HTMLElement>('[data-spy]');
+    if (spy) {
+      const head = document.querySelector<HTMLElement>('.doc-head')!;
+      const links = [...spy.querySelectorAll<HTMLAnchorElement>('[data-spy-to]')];
+      const targets = links.map((a) => document.getElementById(a.dataset.spyTo!)).filter(Boolean) as HTMLElement[];
+      let raf = 0, current = '';
+      const tick = () => {
+        raf = 0;
+        spy.classList.toggle('show', head.getBoundingClientRect().bottom < 80);
+        let id = targets[0]?.id ?? '';
+        for (const t of targets) if (t.getBoundingClientRect().top < innerHeight * 0.35) id = t.id;
+        if (id === current) return;
+        current = id;
+        links.forEach((a) => a.toggleAttribute('aria-current', a.dataset.spyTo === id));
+        const on = links.find((a) => a.dataset.spyTo === id);
+        if (on) spy.scrollTo({ left: on.offsetLeft - spy.clientWidth / 2 + on.offsetWidth / 2, behavior: 'smooth' });
+      };
+      addEventListener('scroll', () => { if (!raf) raf = requestAnimationFrame(tick); }, { passive: true });
+      tick();
+    }
     // 复制按钮：复制目标元素的文本，图标换成对勾 1.6 秒。没有 JS 时文本本身仍可选中复制。
     document.querySelectorAll<HTMLButtonElement>('[data-copy]').forEach((b) => {
       b.hidden = false;

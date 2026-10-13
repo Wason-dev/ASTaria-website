@@ -8,7 +8,7 @@ const qa: Array<{ id: string; q: string; a: string[] }> = [
     `当前公开版本是 ${release.displayName}（${release.version}），属于预发布。` ] },
   { id: 'download', q: 'macOS 和 Windows 怎么下载？', a: [
     '在<a href="/download/">下载页</a>点对应平台的按钮，文件直接来自 GitHub Releases。macOS 是一个 DMG；Windows 有安装程序和便携包两种，任选其一。',
-    '下载后请核对 SHA-256。安装步骤见<a href="/install/">安装说明</a>。' ] },
+    '下载后请核对 SHA-256。安装步骤见<a href="/download/">下载与安装</a>。' ] },
   { id: 'mobile', q: 'Android 和 iOS 现在是什么状态？', a: [
     '都还没有版本，也没有可安装的文件。',
     '如果将来对外测试 iOS 版，会通过 TestFlight。TestFlight 是有有效期的测试分发，不是公开的正式版；官网不会提供可以直接安装的 IPA。' ] },
@@ -41,8 +41,7 @@ const qa: Array<{ id: string; q: string; a: string[] }> = [
 ---
 
 <Doc page="faq" title="常见问题" lead="找不到答案的话，可以到 GitHub 提交 Issue。请不要在 Issue 里贴 API Key、课表或私密聊天。" description="ASTaria 常见问题：支持平台、下载、数据位置、多设备同步、API Key、设备撤销、同步密钥、更新与回退、系统安全提示。">
-  <section aria-label="问题列表">
-    {qa.map((x) => (
+  {qa.map((x) => (
       <details class="qa" id={x.id}>
         <summary>
           <span>{x.q}</span>
@@ -51,7 +50,6 @@ const qa: Array<{ id: string; q: string; a: string[] }> = [
         <div>{x.a.map((p) => <p set:html={p} />)}</div>
       </details>
     ))}
-  </section>
   <script>
     // 带锚点打开时，直接展开对应问题。
     const open = () => { const el = location.hash && document.querySelector<HTMLDetailsElement>(`details${location.hash}`); if (el) el.open = true; };

@@ -1,0 +1,46 @@
+---
+// 一个安装包：名称、文件名、下载按钮，以及架构、版本、日期、签名和 SHA-256。
+import Icon from './Icon.astro';
+import Code from './Code.astro';
+import { release, assetUrl, checksumUrl, formatSize, publishedDate } from '../data/release';
+interface Props {
+  asset: { label: string; fileName: string; sizeBytes: number; sha256: string };
+  architecture?: string;
+  signing: string;
+  id: string;
+}
+const { asset: a, architecture, signing, id } = Astro.props;
+---
+
+<div class="asset">
+  <div class="asset-top">
+    <div>
+      <p class="asset-label">{a.label}</p>
+      <p class="asset-meta mono">{a.fileName}</p>
+    </div>
+    <a class="btn btn-primary" href={assetUrl(a.fileName)}><Icon name="download" />下载 · {formatSize(a.sizeBytes)}</a>
+  </div>
+  <dl class="kv">
+    <dt>架构</dt><dd>{architecture}</dd>
+    <dt>版本</dt><dd class="mono">{release.version}</dd>
+    <dt>发布日期</dt><dd class="mono">{publishedDate}</dd>
+    <dt>签名</dt><dd>{signing}</dd>
+    <dt>SHA-256</dt>
+    <dd>
+      <Code id={id} code={a.sha256} label="复制 SHA-256" />
+      <a class="sha-file" href={checksumUrl(a.fileName)}>下载 .sha256 校验文件</a>
+    </dd>
+  </dl>
+</div>
+
+<style>
+  .asset { margin-top: 24px; padding: 22px; border-radius: 20px; background: rgb(0 0 0 / 0.22); box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.09); }
+  .asset-top { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 18px; }
+  .asset-label { color: var(--fg) !important; font-size: 19px !important; font-weight: 600; }
+  .asset-meta { margin-top: 4px !important; color: var(--fg-3) !important; font-size: 13px !important; overflow-wrap: anywhere; }
+  .asset :global(.kv) { margin-top: 20px; }
+  .asset :global(.code) { margin-top: 0; }
+  .asset :global(.code pre) { font-size: 12.5px; white-space: pre-wrap; word-break: break-all; padding: 12px 52px 12px 14px; }
+  .asset :global(.copy) { top: 6px; right: 6px; }
+  .sha-file { display: inline-block; margin-top: 8px; font-size: 14px; }
+</style>

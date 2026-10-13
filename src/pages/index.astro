@@ -59,7 +59,7 @@ const cards = [
           <a class="btn btn-primary" href="/download/"><Icon name="download" />下载 {release.displayName}</a>
           <a class="btn btn-ghost" href={releaseUrl} target="_blank" rel="noopener noreferrer">Release<Icon name="arrow-up-right" /><span class="sr-only">（新窗口打开）</span></a>
         </div>
-        <p class="meta" data-reveal data-delay="3">macOS 13+ Apple Silicon　·　Windows x64 试验版　·　<a href="/install/">安装说明</a></p>
+        <p class="meta" data-reveal data-delay="3">macOS 13+ Apple Silicon　·　Windows x64 试验版　·　<a href="/download/#macos">安装说明</a></p>
       </div>
     </div>
   </section>
@@ -80,7 +80,7 @@ const cards = [
   <!-- 空档：画出来的一天 -->
   <section class="gaps" aria-labelledby="g-h">
     <p class="eyebrow" data-reveal>排程</p>
-    <h2 id="g-h" class="headline sm" data-reveal="lines"><span class="ln"><span>放进真实的<span class="hollow">空档</span></span></span></h2>
+    <h2 id="g-h" class="headline sm" data-reveal="lines"><span class="ln ln-row"><span>放进真实的</span><span class="hollow">空档</span></span></h2>
     <p class="gaps-body" data-reveal="up">析熙先看这一天已经被课程和任务占住的时间，再把新事项放进空着的时段，不和已有安排重叠。</p>
     <DayGaps />
   </section>
@@ -156,7 +156,7 @@ const cards = [
       <div class="dive-cta">
         <div class="cta">
           <a class="btn btn-primary" href="/download/"><Icon name="download" />下载 {release.displayName}</a>
-          <a class="btn btn-ghost" href="/install/">安装说明</a>
+          <a class="btn btn-ghost" href="/download/#verify">核对与安装</a>
         </div>
         <ul class="plats">
           {release.platforms.map((p) => <li><span class="pn">{p.name}</span><span class="status" data-s={p.status}>{p.statusLabel}</span></li>)}
