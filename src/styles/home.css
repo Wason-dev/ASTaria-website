@@ -150,7 +150,8 @@
 .card:hover .card-img .shot { transform: scale(1.025); }
 .card p { max-width: 34em; margin: 22px 0 0 8px; color: var(--fg-3); font-size: 16px; line-height: 1.7; }
 .card p strong { color: var(--fg); font-weight: 600; margin-right: 0.3em; }
-.arrows { display: flex; justify-content: flex-end; gap: 14px; margin-top: 28px; }
+/* 箭头要在卡片轨道之上：轨道为了不切掉阴影，底部留了一段空白，会盖住箭头、吃掉点击 */
+.arrows { position: relative; z-index: 2; display: flex; justify-content: flex-end; gap: 14px; margin-top: 28px; }
 .arrow {
   display: grid; place-items: center; width: 44px; height: 44px; border: 0; border-radius: 50%; cursor: pointer;
   color: var(--fg); background: rgb(255 255 255 / 0.1);

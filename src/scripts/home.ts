@@ -237,15 +237,27 @@ export function mountHome() {
       prev.disabled = track.scrollLeft <= 2;
       next.disabled = track.scrollLeft >= max;
     };
-    // 按卡片翻页：算出目标卡片的位置再滚过去。带吸附的横向容器里，平滑滚动有时一动不动，
-    // 所以半秒后如果还没动，就直接跳到目标位置
+    // 按卡片翻页：自己做滑动动画。浏览器自带的平滑滚动会和卡片吸附打架，有时一动不动，
+    // 所以滑动期间先关掉吸附，滑到目标卡片后再打开
+    let sliding = 0, target = -1;
     const go = (dir: number) => {
-      const st = step(), from = track.scrollLeft;
+      const st = step();
       const max = track.scrollWidth - track.clientWidth;
-      const to = Math.min(Math.max((Math.round(from / st) + dir) * st, 0), max);
-      if (Math.abs(to - from) < 2) return;
-      track.scrollTo({ left: to, behavior: reduce ? 'auto' : 'smooth' });
-      setTimeout(() => { if (Math.abs(track.scrollLeft - from) < 2) track.scrollLeft = to; update(); }, 500);
+      const base = target >= 0 ? target : track.scrollLeft; // 连点时从上一次的目标继续
+      const to = Math.min(Math.max((Math.round(base / st) + dir) * st, 0), max);
+      if (Math.abs(to - track.scrollLeft) < 2) return;
+      cancelAnimationFrame(sliding);
+      target = to;
+      if (reduce) { track.scrollLeft = to; target = -1; update(); return; }
+      const from = track.scrollLeft, t0 = performance.now(), dur = 620;
+      track.style.scrollSnapType = 'none';
+      const tick = (now: number) => {
+        const k = Math.min((now - t0) / dur, 1), e = 1 - Math.pow(1 - k, 3);
+        track.scrollLeft = from + (to - from) * e;
+        if (k < 1) sliding = requestAnimationFrame(tick);
+        else { track.style.scrollSnapType = ''; target = -1; update(); }
+      };
+      sliding = requestAnimationFrame(tick);
     };
     prev.addEventListener('click', () => go(-1));
     next.addEventListener('click', () => go(1));

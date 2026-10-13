@@ -15,7 +15,7 @@ const links = [
 
 <header class="nav">
   <div class="nav-in">
-    <a class="word" href="/" aria-current={current === 'home' ? 'page' : undefined}>ASTaria</a>
+    <a class="brand" href="/" aria-current={current === 'home' ? 'page' : undefined}>ASTaria</a>
     <nav aria-label="主导航">
       <ul class="links">
         {links.map((l) => <li><a href={l.href} aria-current={l.id === current ? 'page' : undefined}>{l.label}</a></li>)}
@@ -46,7 +46,7 @@ const links = [
     display: flex; align-items: center; gap: 32px; height: 100%;
     padding: 0 clamp(20px, 2.6vw, 40px);
   }
-  .word { font-size: 18px; font-weight: 600; letter-spacing: 0.01em; margin-right: auto; }
+  .brand { display: flex; align-items: center; height: 100%; margin: 0 auto 0 0; font-size: 18px; font-weight: 600; line-height: 1; letter-spacing: 0.01em; }
   .links { display: flex; gap: 28px; margin: 0; padding: 0; list-style: none; }
   .links a { font-size: 13px; color: var(--fg-2); transition: color 200ms var(--ease); }
   .links a:hover, .links a[aria-current='page'] { color: var(--fg); }
