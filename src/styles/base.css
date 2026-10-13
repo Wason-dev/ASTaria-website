@@ -52,6 +52,10 @@ p, figure { margin: 0; }
 h1, h2, h3, h4 { margin: 0; font-weight: 600; text-wrap: balance; }
 code, pre, .mono { font-family: var(--mono); font-variant-numeric: tabular-nums; }
 ::selection { background: rgb(213 187 139 / 0.32); }
+/* 手机上点按钮时，浏览器默认会闪一块蓝色高亮；关掉它，按下的反馈由各按钮自己的样式负责 */
+* { -webkit-tap-highlight-color: transparent; }
+/* 只有键盘操作才显示焦点框（用手指或鼠标点击不显示）；颜色是站内的暖金，不是浏览器默认的蓝色 */
+:focus { outline: none; }
 :focus-visible { outline: 2px solid var(--gold-2); outline-offset: 3px; border-radius: 6px; }
 .sr-only {
   position: absolute !important; width: 1px; height: 1px; margin: -1px; padding: 0;
