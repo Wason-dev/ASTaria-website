@@ -15,7 +15,7 @@ const days: Day[] = [
 ];
 ---
 
-<div class="ws" data-play role="img" aria-label="示意图：10/5–10/6 放假，10/9 使用周三课表，10/10 周六使用周五课表，其他日子不变">
+<div class="ws glass" data-glass data-play role="img" aria-label="示意图：10/5–10/6 放假，10/9 使用周三课表，10/10 周六使用周五课表，其他日子不变">
   {days.map((x, i) => (
     <div class:list={['ws-d', { changed: !!x.after, off: x.off }]} style={`--i:${i}`}>
       <p class="ws-h"><b>{x.w}</b><span class="mono">{x.d}</span></p>

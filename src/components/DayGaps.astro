@@ -16,7 +16,7 @@ const slot = [hm(18), hm(18, 45)];
 const ticks = [8, 10, 12, 14, 16, 18, 20, 22];
 ---
 
-<div class="dg" data-play aria-label="示意图：新事项被安排进 18:00 到 18:45 的空档" role="img">
+<div class="dg glass" data-glass data-play aria-label="示意图：新事项被安排进 18:00 到 18:45 的空档" role="img">
   <div class="dg-track">
     {gaps.map(([a, b]) => <span class="dg-gap" style={pos(a, b)}></span>)}
     {blocks.map((x) => <span class:list={['dg-b', x.k]} style={pos(x.a, x.b)}><em>{x.t}</em></span>)}

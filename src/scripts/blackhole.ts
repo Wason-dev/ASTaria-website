@@ -1,6 +1,7 @@
 // 背景黑洞：天文馆里的天体。它按自己的时钟慢慢转，不跟着滚动走。
 //
-//   位置和大小由页面上的 [data-hole] 槽位决定：黑洞中心对准槽位中心，盘面宽度刚好落在槽位里，
+//   首页开场 [data-cam="fly"]：镜头贴着盘面飞过，往下滑约 0.9 屏拉回全景。
+//   文档页的位置和大小由页面上的 [data-hole] 槽位决定：黑洞中心对准槽位中心，盘面宽度刚好落在槽位里，
 //   所以它和左侧文字共用同一条网格，左右留白一致，不会出画。方位角极慢地匀速增加，仰角小幅起伏。
 //   滚进内容区（[data-dim]）时慢慢压暗、轻微模糊；接近结尾再慢慢恢复。
 //   结尾 [data-cam="dive"] 约三屏：推进程度由这一段的滚动位置决定，加一层一阶平滑，不会过冲。
@@ -78,12 +79,15 @@ export function mountBlackHole(host: HTMLElement) {
   addEventListener('resize', size);
 
   const diveEl = document.querySelector<HTMLElement>('[data-cam="dive"]');
+  // 首页开场：镜头贴着盘面飞过（像应用首页那样），往下滑拉回全景
+  const flyEl = document.querySelector<HTMLElement>('[data-cam="fly"]');
   const dimEl = document.querySelector<HTMLElement>('[data-dim]');
   // 槽位：按页面顶部时的位置量一次（黑洞固定在背景里，不随滚动移动）
   const slotEl = document.querySelector<HTMLElement>('[data-hole]');
   let slot = { cx: 0, cy: 0, r: 0 };
   const measure = () => {
-    if (!slotEl) { slot = { cx: W * 0.68, cy: H * 0.42, r: H * 0.1 }; return; }
+    // 没有槽位时（首页）：全景居中，阴影约屏高的 11%
+    if (!slotEl) { slot = { cx: W * 0.5, cy: H * 0.46, r: H * 0.11 }; return; }
     const b = slotEl.getBoundingClientRect();
     const top = b.top + scrollY;
     slot = { cx: b.left + b.width / 2, cy: top + b.height / 2, r: Math.min(b.width / 2 / DISC_SPAN, b.height / 2 / 2.6) };
@@ -94,7 +98,7 @@ export function mountBlackHole(host: HTMLElement) {
   document.fonts?.ready.then(measure);
   const shadowEls = [...document.querySelectorAll<HTMLElement>('[data-in-shadow]')];
   const t0 = performance.now();
-  let dive = 0, dim = 0, dimShown = -1, last = t0;
+  let dive = 0, dim = 0, dimShown = -1, hp = 0, hpShown = -1, last = t0;
 
   const sky = (now: number): Pose => {
     const t = (now - t0) / 1000;
@@ -107,6 +111,16 @@ export function mountBlackHole(host: HTMLElement) {
       sx: (slot.cx - W / 2) / H,
       sy: (H / 2 - slot.cy) / H,
       expo: 1.05,
+    };
+  };
+  // 飞跃：离黑洞很近、几乎贴着盘面，阴影很大、偏在右上，盘面的光带铺满左边和下方
+  const fly = (from: Pose): Pose => {
+    const a = W / H, portrait = a < 0.95;
+    // 近处盘面很亮，曝光压低，才能看出暖色的层次而不是一片白；仰角略抬，光带不至于铺满整屏
+    const dist = 11;
+    return {
+      dist, fov: shadowTan(dist) / (portrait ? 0.28 : 0.4), incl: 0.17, yaw: from.yaw,
+      sx: portrait ? 0.12 : a * 0.3, sy: portrait ? 0.24 : 0.16, expo: 0.62,
     };
   };
   const inside = (from: Pose): Pose => {
@@ -128,9 +142,10 @@ export function mountBlackHole(host: HTMLElement) {
       want = c01((H * 0.9 - b.top) / (b.height * 0.8));
     }
     dive = still ? want : dive + (want - dive) * (1 - Math.exp(-DIVE_K * dt));
-    // 内容区压暗：用约 1.4 屏慢慢压下去；越过视界那一段进入屏幕时才开始、用 1.4 屏慢慢恢复
+    // 内容区压暗：内容区顶部到屏幕下方 10% 时开始、约 0.8 屏压下去（首页此时已拉回全景）；
+    // 越过视界那一段进入屏幕时才开始、用 1.4 屏慢慢恢复
     if (dimEl) {
-      const into = c01((H - dimEl.getBoundingClientRect().top) / (H * 1.4));
+      const into = c01((H * 0.9 - dimEl.getBoundingClientRect().top) / (H * 0.8));
       const out = c01((H * 1.6 - diveTop) / (H * 1.4));
       const dWant = into * (1 - out);
       dim = still ? dWant : dim + (dWant - dim) * (1 - Math.exp(-6 * dt));
@@ -140,7 +155,19 @@ export function mountBlackHole(host: HTMLElement) {
         canvas.style.filter = q > 0 ? `brightness(${(1 - 0.55 * q).toFixed(2)}) blur(${(4 * q).toFixed(1)}px)` : '';
       }
     }
-    const s = sky(now);
+    // 拉回全景：滑过约 0.9 屏完成。一阶平滑，不会过冲。进度写进 --hp，开场玻璃板据此淡出
+    if (flyEl) {
+      const hWant = c01(scrollY / (H * 0.9));
+      hp = still ? hWant : hp + (hWant - hp) * (1 - Math.exp(-8 * dt));
+      const q = Math.round(hp * 1000) / 1000;
+      if (q !== hpShown) { hpShown = q; document.documentElement.style.setProperty('--hp', String(q)); }
+    }
+    const pano = sky(now);
+    let s = pano;
+    if (flyEl && hp < 1) {
+      const f = fly(pano), k = hp * hp * (3 - 2 * hp);
+      s = { dist: logLerp(f.dist, pano.dist, k), fov: logLerp(f.fov, pano.fov, k), incl: mix(f.incl, pano.incl, k), yaw: pano.yaw, sx: mix(f.sx, pano.sx, k), sy: mix(f.sy, pano.sy, k), expo: mix(f.expo, pano.expo, k) };
+    }
     const i = inside(s);
     const u = dive * dive * (3 - 2 * dive);
     const p: Pose = {

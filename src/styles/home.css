@@ -1,4 +1,4 @@
-/* 首页。所有内容与导航同宽（.wrap）。开场：文字左栏，黑洞落在右栏的 [data-hole] 槽位里。
+/* 首页。所有内容与导航同宽（.wrap）。开场：镜头贴着盘面飞过，文字在左侧亮玻璃上；往下滑拉回全景、压暗，再出现内容。
    滚动是原生的。往下进入内容区，背景黑洞慢慢压暗、轻微模糊；结尾「越过视界」约三屏。 */
 
 .num { color: var(--gold-2); font-size: 12px; letter-spacing: 0.18em; }
@@ -6,13 +6,23 @@
 .tag .mono { color: var(--gold-2); }
 .eyebrow { color: var(--gold-2); font-size: 14px; letter-spacing: 0.06em; }
 
-/* ---------- 开场 ---------- */
-.hero {
-  min-height: 92svh;
-  display: grid; grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr); gap: 3vw; align-items: center;
-  padding-top: 64px;
+/* ---------- 开场：飞跃视角，左侧两块亮玻璃 ----------
+   --hp（0→1）由 scripts/blackhole.ts 按滚动写入：玻璃随之淡出、向左退开，镜头同时拉回全景。 */
+.hero { min-height: 100svh; display: flex; align-items: center; padding-top: 72px; padding-bottom: 6vh; }
+.hero-panes {
+  display: grid; gap: 14px; width: min(100%, 500px);
+  opacity: calc(1 - var(--hp, 0) * 1.6);
+  transform: translate3d(calc(var(--hp, 0) * -60px), calc(var(--hp, 0) * -30px), 0) scale(calc(1 - var(--hp, 0) * 0.04));
+  transform-origin: 0 50%;
+  will-change: transform, opacity;
 }
-.hole { height: min(64vh, 560px); }
+/* 亮玻璃（.glass，见 base.css）：开场的盘面已压低曝光，玻璃提亮后字仍清楚 */
+.hp-pane { padding: clamp(26px, 2.6vw, 38px); border-radius: 28px; text-shadow: 0 1px 18px rgb(0 0 0 / 0.5); }
+.hp-pane.small { padding: 22px clamp(22px, 2.4vw, 30px); border-radius: 24px; }
+.hp-pane.small .cta { margin-top: 0; }
+.hp-pane.small .meta { margin-top: 16px; color: var(--fg-2); }
+.hp-pane .tag { color: var(--fg-2); }
+.pano { height: 70svh; }
 .word {
   margin-top: 18px;
   font-size: clamp(56px, 7vw, 108px);
@@ -41,12 +51,14 @@
 .chat-body b { color: var(--fg); font-weight: 600; }
 .chat-note { margin-top: 18px; color: var(--fg-4); font-size: 12px; }
 
+/* 聊天窗微微侧过来朝向左边的文字：左边远、短，右边近、长。以右边为轴，右边保持原大小，不会出画。
+   指针放上去时稍微转正一点。 */
+.chat-demo { perspective: 1500px; }
+.xx { transform: rotateY(-16deg); transform-origin: 100% 50%; transition: transform 1.2s var(--ease); }
+.chat-demo:hover .xx { transform: rotateY(-9deg); }
 .xx-win {
   display: flex; flex-direction: column; height: min(62vh, 540px);
   border-radius: 26px; overflow: hidden;
-  background: linear-gradient(180deg, rgb(26 25 24 / 0.62), rgb(12 12 13 / 0.72));
-  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.1), 0 30px 80px -30px rgb(0 0 0 / 0.8);
-  -webkit-backdrop-filter: blur(22px) saturate(150%); backdrop-filter: blur(22px) saturate(150%);
 }
 .xx-top { display: flex; justify-content: space-between; align-items: baseline; padding: 18px 22px 14px; border-bottom: 1px solid rgb(255 255 255 / 0.08); }
 .xx-name { font-weight: 600; font-size: 15px; }
@@ -96,8 +108,8 @@
 .fi-bar i { position: absolute; inset: 0; background: var(--gold-2); transform-origin: 0 50%; transform: scaleX(0); }
 .fi-desc p { padding: 0 0 14px; color: var(--fg-3); font-size: 14.5px; line-height: 1.65; }
 .feat-stage { display: grid; }
-.panel .shot { padding: 8px; border-radius: 26px; background: rgb(255 255 255 / 0.05); }
-.panel .shot .frame { border-radius: 18px; }
+.shot-pane { padding: 8px; border-radius: 26px; }
+.shot-pane .frame { border-radius: 18px; }
 /* 有 JS：说明折叠，只展开当前一条；画面叠在同一格里交叉淡化 */
 .feat.live .fi-desc { display: grid; grid-template-rows: 0fr; transition: grid-template-rows 0.6s var(--ease); }
 .feat.live .fi-desc > p { overflow: hidden; opacity: 0; transition: opacity 0.5s var(--ease); }
@@ -118,7 +130,7 @@
 }
 .track::-webkit-scrollbar { display: none; }
 .card { flex: 0 0 min(66%, 760px); scroll-snap-align: start; }
-.card-img { overflow: hidden; border-radius: 26px; padding: 8px; background: rgb(255 255 255 / 0.05); }
+.card-img { overflow: hidden; border-radius: 26px; padding: 8px; }
 .card-img .shot { transition: transform 1.2s var(--ease); }
 .card-img .frame { border-radius: 18px; }
 .card:hover .card-img .shot { transform: scale(1.025); }
@@ -163,11 +175,12 @@
 
 /* ---------- 窄屏：黑洞在上，文字在下 ---------- */
 @media (max-width: 899px) {
-  .hero { grid-template-columns: 1fr; gap: 0; min-height: 0; padding-top: 72px; padding-bottom: 6vh; }
-  .hero .hole { order: -1; height: 38svh; }
+  .hero { align-items: flex-end; padding-bottom: 5vh; }
+  .pano { height: 50svh; }
   .card { flex-basis: 86%; }
   .data-grid, .chat, .feat { grid-template-columns: 1fr; gap: 32px; min-height: 0; }
   .feat-stage { order: -1; }
   .xx-win { height: 460px; }
+  .xx, .chat-demo:hover .xx { transform: none; }
   .dive-line { letter-spacing: 0.18em; padding-left: 0.18em; }
 }
