@@ -52,6 +52,34 @@ const { title, description, page, eyebrow, lead, toc } = Astro.props;
     cards.forEach((c) => { c.classList.add('glass', 'card'); c.dataset.glass = ''; });
     if (!mountBlackHole(bh)) document.documentElement.classList.add('bh-off');
     mountGlass();
+    // 问答卡片展开 / 收起：自己做高度动画（Safari 不支持 details 的 CSS 高度过渡）
+    const still = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    document.querySelectorAll<HTMLDetailsElement>('details.qa').forEach((d) => {
+      const sum = d.querySelector('summary')!;
+      d.classList.add('anim');
+      if (d.open) d.classList.add('shown');
+      let a: Animation | null = null;
+      sum.addEventListener('click', (e) => {
+        if (still) { requestAnimationFrame(() => d.classList.toggle('shown', d.open)); return; }
+        e.preventDefault();
+        const from = d.offsetHeight;
+        a?.cancel();
+        if (!d.open) {
+          d.open = true;
+          const to = d.offsetHeight;
+          requestAnimationFrame(() => d.classList.add('shown'));
+          a = d.animate({ height: [`${from}px`, `${to}px`] }, { duration: 520, easing: 'cubic-bezier(0.16, 1, 0.3, 1)' });
+        } else {
+          d.classList.remove('shown');
+          const to = sum.offsetHeight;
+          a = d.animate({ height: [`${from}px`, `${to}px`] }, { duration: 380, easing: 'cubic-bezier(0.4, 0, 0.2, 1)' });
+          a.onfinish = () => { d.open = false; };
+        }
+        d.style.overflow = 'hidden';
+        a.addEventListener('finish', () => { d.style.overflow = ''; a = null; });
+        a.addEventListener('cancel', () => { d.style.overflow = ''; });
+      });
+    });
     // 卡片滚到时浮现
     const reveal = new IntersectionObserver((es) => es.forEach((e) => { if (e.isIntersecting) { e.target.classList.add('in'); reveal.unobserve(e.target); } }), { rootMargin: '0px 0px -8% 0px', threshold: 0.01 });
     cards.forEach((c) => reveal.observe(c));

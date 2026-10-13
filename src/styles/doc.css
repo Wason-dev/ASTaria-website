@@ -19,7 +19,9 @@
 .doc-body { margin-top: 8vh; }
 /* 正文：每一节一块单独的亮玻璃卡片（脚本给它们加上 .glass，带折射亮边和跟随指针的高光）。
    没有 JS 时这里的样式本身就是一块不带高光的玻璃。 */
-.sheet { display: grid; gap: 20px; }
+/* 网格的列宽必须写成 minmax(0, 1fr)：默认最小值是内容宽度，长命令、长文件名会把卡片撑到屏幕外 */
+.sheet { display: grid; grid-template-columns: minmax(0, 1fr); gap: 20px; }
+.sheet > section, .sheet > details { min-width: 0; }
 .sheet > section, .sheet > details {
   position: relative; scroll-margin-top: 120px;
   padding: clamp(26px, 3.6vw, 52px);
@@ -104,10 +106,16 @@ details.qa[open] summary svg { transform: rotate(180deg); color: var(--gold-2); 
 details.qa > div { padding: 0 0 24px; }
 details.qa > div p { color: var(--fg-2); }
 details.qa > div p + p { margin-top: 12px; }
-:root { interpolate-size: allow-keywords; }
-details.qa::details-content { block-size: 0; overflow: clip; transition: block-size 0.5s var(--ease), content-visibility 0.5s allow-discrete; }
-details.qa[open]::details-content { block-size: auto; }
-@media (prefers-reduced-motion: reduce) { details.qa::details-content { transition: none; } }
+/* 展开动画由 Doc.astro 的脚本驱动（各浏览器一致）：卡片长高、标题变金、内容逐行浮现 */
+details.qa summary > span { transition: color 300ms var(--ease); }
+details.qa[open] summary > span { color: var(--gold-2); }
+details.qa.anim > div > * { opacity: 0; transform: translate3d(0, 10px, 0); }
+details.qa.anim.shown > div > * { opacity: 1; transform: none; transition: opacity 0.45s var(--ease), transform 0.55s var(--ease); }
+details.qa.anim.shown > div > :nth-child(2) { transition-delay: 0.05s; } details.qa.anim.shown > div > :nth-child(3) { transition-delay: 0.1s; }
+details.qa.anim.shown > div > :nth-child(4) { transition-delay: 0.15s; } details.qa.anim.shown > div > :nth-child(n+5) { transition-delay: 0.2s; }
+/* 展开时卡片微微亮一下 */
+.sheet > details.qa.card { transition: box-shadow 0.5s var(--ease); }
+.sheet > details.qa.card[open] { box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.32), inset 0 0 0 1px rgb(236 211 164 / 0.22), 0 30px 70px -30px rgb(0 0 0 / 0.8); }
 
 @media (max-width: 600px) {
   .kv { grid-template-columns: minmax(0, 1fr); }

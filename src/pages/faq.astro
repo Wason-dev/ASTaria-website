@@ -52,7 +52,7 @@ const qa: Array<{ id: string; q: string; a: string[] }> = [
     ))}
   <script>
     // 带锚点打开时，直接展开对应问题。
-    const open = () => { const el = location.hash && document.querySelector<HTMLDetailsElement>(`details${location.hash}`); if (el) el.open = true; };
+    const open = () => { const el = location.hash && document.querySelector<HTMLDetailsElement>(`details${location.hash}`); if (el) { el.open = true; el.classList.add('shown'); } };
     open();
     addEventListener('hashchange', open);
   </script>
