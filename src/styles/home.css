@@ -23,8 +23,8 @@
   padding: clamp(26px, 2.6vw, 38px); border-radius: 28px; text-shadow: 0 1px 18px rgb(0 0 0 / 0.5);
   /* 很透：底色约 10%，背后的盘面强模糊后几乎原样透出来，只留亮边和一层极淡的暖灰 */
   background: linear-gradient(180deg, rgb(255 255 255 / 0.03), transparent 42%, rgb(255 255 255 / 0.015)), rgb(20 18 16 / 0.1);
-  -webkit-backdrop-filter: blur(30px) saturate(130%);
-  backdrop-filter: blur(30px) saturate(130%);
+  -webkit-backdrop-filter: blur(16px) saturate(130%);
+  backdrop-filter: blur(16px) saturate(130%);
 }
 .hp-pane .word { text-shadow: none; filter: drop-shadow(0 2px 18px rgb(0 0 0 / 0.35)); }
 .hp-pane.small { padding: 22px clamp(22px, 2.4vw, 30px); border-radius: 24px; }

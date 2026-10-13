@@ -90,6 +90,46 @@ export function mountHome() {
     });
   }
 
+  // ---------- 析熙的四个能力：排在地平线上，点一个就转到正上方 ----------
+  const orb = document.querySelector<HTMLElement>('[data-orbit]');
+  if (orb) {
+    orb.classList.add('live');
+    const ns = [...orb.querySelectorAll<HTMLButtonElement>('.orb-n')];
+    const ps = [...orb.querySelectorAll<HTMLElement>('.mc')];
+    const n = ns.length;
+    let cur = 0, pos = 0; // pos 是连续的转动量，切换时走最短的方向
+    const step = () => parseFloat(getComputedStyle(orb.querySelector('.orb-arc')!).getPropertyValue('--step')) || 15;
+    const place = () => {
+      const st = step();
+      ns.forEach((b, k) => {
+        let d = k - pos;
+        d = ((d % n) + n + n / 2) % n - n / 2; // 落在 [-n/2, n/2)
+        b.style.setProperty('--a', `${d * st}deg`);
+        b.style.opacity = String(Math.max(0, 1 - Math.abs(d) * 0.34));
+        b.tabIndex = Math.abs(d) > 1.5 ? -1 : 0;
+      });
+    };
+    const select = (i: number) => {
+      let d = i - cur;
+      d = ((d % n) + n + n / 2) % n - n / 2;
+      pos += d; cur = ((i % n) + n) % n;
+      ns.forEach((b, k) => { b.classList.toggle('on', k === cur); b.setAttribute('aria-pressed', String(k === cur)); });
+      ps.forEach((p, k) => { p.classList.toggle('on', k === cur); p.toggleAttribute('inert', k !== cur); });
+      place();
+    };
+    // 不点时每 9 秒自己转到下一个；指针在上面、焦点在里面、或不在屏幕上时暂停；点过一次就不再自己转
+    let auto = !reduce, hover = false, seen = false, timer = 0;
+    const arm = () => { clearTimeout(timer); if (auto && !hover && seen) timer = window.setTimeout(() => { select(cur + 1); arm(); }, 9000); };
+    ns.forEach((b, i) => b.addEventListener('click', () => { auto = false; select(i); }));
+    orb.addEventListener('pointerenter', () => { hover = true; arm(); });
+    orb.addEventListener('pointerleave', () => { hover = false; arm(); });
+    orb.addEventListener('focusin', () => { hover = true; arm(); });
+    orb.addEventListener('focusout', () => { hover = false; arm(); });
+    new IntersectionObserver(([e]) => { seen = e.isIntersecting; arm(); }, { threshold: 0.4 }).observe(orb);
+    addEventListener('resize', place);
+    select(0);
+  }
+
   // ---------- 细节区卡片 ----------
   const car = document.querySelector<HTMLElement>('[data-carousel]');
   if (car) {
