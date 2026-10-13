@@ -99,14 +99,23 @@ export function mountHome() {
     const n = ns.length;
     let cur = 0, pos = 0; // pos 是连续的转动量，切换时走最短的方向
     const step = () => parseFloat(getComputedStyle(orb.querySelector('.orb-arc')!).getPropertyValue('--step')) || 15;
+    const last: number[] = [];
     const place = () => {
       const st = step();
       ns.forEach((b, k) => {
         let d = k - pos;
         d = ((d % n) + n + n / 2) % n - n / 2; // 落在 [-n/2, n/2)
+        // 从一头绕到另一头：先关掉过渡瞬间换位（此时它是隐藏的），不让它横穿画面
+        if (last[k] !== undefined && Math.abs(d - last[k]) > 1.5) {
+          b.style.transition = 'none';
+          b.style.setProperty('--a', `${d * st}deg`);
+          void b.offsetWidth;
+          b.style.transition = '';
+        }
+        last[k] = d;
         b.style.setProperty('--a', `${d * st}deg`);
-        b.style.opacity = String(Math.max(0, 1 - Math.abs(d) * 0.34));
-        b.tabIndex = Math.abs(d) > 1.5 ? -1 : 0;
+        b.style.opacity = Math.abs(d) >= 1.5 ? '0' : String(1 - Math.abs(d) * 0.4);
+        b.tabIndex = Math.abs(d) >= 1.5 ? -1 : 0;
       });
     };
     const select = (i: number) => {

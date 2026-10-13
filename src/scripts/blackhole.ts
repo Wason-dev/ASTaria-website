@@ -38,6 +38,7 @@ export function mountBlackHole(host: HTMLElement) {
   try {
     gl.attachShader(prog, compile(gl.VERTEX_SHADER, VERT));
     gl.attachShader(prog, compile(gl.FRAGMENT_SHADER, FRAG));
+    gl.bindAttribLocation(prog, 0, 'p');
     gl.linkProgram(prog);
     if (!gl.getProgramParameter(prog, gl.LINK_STATUS)) throw new Error('link');
   } catch (e) {
@@ -92,13 +93,85 @@ export function mountBlackHole(host: HTMLElement) {
   canvas.setAttribute('aria-hidden', 'true');
   host.append(canvas);
   let W = innerWidth, H = innerHeight;
+  // ---------- 选择性泛光（照应用 postprocessing.ts）：只让盘面的亮处向外晕开，暗的天空不受影响 ----------
+  // 场景先画进离屏纹理；亮度门限取出亮处 → 1/4 分辨率 → 横、竖两次高斯模糊 → 以暖白色叠回原图。
+  const PASS_VERT = `#version 300 es
+in vec2 p; out vec2 v; void main(){ v = p * 0.5 + 0.5; gl_Position = vec4(p, 0.0, 1.0); }`;
+  const passProg = (frag: string) => {
+    const pr = gl.createProgram()!;
+    gl.attachShader(pr, compile(gl.VERTEX_SHADER, PASS_VERT));
+    gl.attachShader(pr, compile(gl.FRAGMENT_SHADER, `#version 300 es
+precision highp float; in vec2 v; out vec4 o; uniform sampler2D uIn; uniform sampler2D uBloom; uniform vec2 uTexel; uniform vec2 uDir;
+${frag}`));
+    gl.bindAttribLocation(pr, 0, 'p');
+    gl.linkProgram(pr);
+    return pr;
+  };
+  const preP = passProg(`void main(){ vec2 off = uTexel * 1.2;
+  vec3 c = (texture(uIn, v + vec2(-off.x,-off.y)).rgb + texture(uIn, v + vec2(off.x,-off.y)).rgb + texture(uIn, v + vec2(-off.x,off.y)).rgb + texture(uIn, v + vec2(off.x,off.y)).rgb) * 0.25;
+  float l = dot(c, vec3(0.2126, 0.7152, 0.0722)); const float th = 0.70, kn = 0.12;
+  float sh = clamp(l - th + kn, 0.0, 2.0 * kn); sh = sh * sh / (4.0 * kn + 0.00001);
+  o = vec4(c * (max(sh, l - th) / max(l, 0.00001)), 1.0); }`);
+  const blurP = passProg(`void main(){
+  vec3 c = texture(uIn, v).rgb * 0.2270270270;
+  c += (texture(uIn, v + uDir).rgb + texture(uIn, v - uDir).rgb) * 0.1945945946;
+  c += (texture(uIn, v + uDir * 2.0).rgb + texture(uIn, v - uDir * 2.0).rgb) * 0.1216216216;
+  c += (texture(uIn, v + uDir * 3.0).rgb + texture(uIn, v - uDir * 3.0).rgb) * 0.0540540541;
+  c += (texture(uIn, v + uDir * 4.0).rgb + texture(uIn, v - uDir * 4.0).rgb) * 0.0162162162;
+  o = vec4(c, 1.0); }`);
+  const compP = passProg(`void main(){ o = vec4(texture(uIn, v).rgb + texture(uBloom, v).rgb * vec3(1.0, 0.91, 0.78) * 0.36, 1.0); }`);
+  const target = () => {
+    const t = gl.createTexture()!, f = gl.createFramebuffer()!;
+    gl.activeTexture(gl.TEXTURE2);
+    gl.bindTexture(gl.TEXTURE_2D, t);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+    return { t, f, w: 1, h: 1 };
+  };
+  const scene = target(), ping = target(), pong = target();
+  const sizeTarget = (x: ReturnType<typeof target>, w: number, h: number) => {
+    x.w = w; x.h = h;
+    gl.activeTexture(gl.TEXTURE2);
+    gl.bindTexture(gl.TEXTURE_2D, x.t);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA8, w, h, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
+    gl.bindFramebuffer(gl.FRAMEBUFFER, x.f);
+    gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, x.t, 0);
+    gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+  };
+  const pass = (pr: WebGLProgram, input: WebGLTexture, out: ReturnType<typeof target> | null, set: () => void) => {
+    gl.useProgram(pr);
+    gl.bindFramebuffer(gl.FRAMEBUFFER, out ? out.f : null);
+    gl.viewport(0, 0, out ? out.w : canvas.width, out ? out.h : canvas.height);
+    gl.activeTexture(gl.TEXTURE2); gl.bindTexture(gl.TEXTURE_2D, input);
+    gl.uniform1i(gl.getUniformLocation(pr, 'uIn'), 2);
+    set();
+    gl.drawArrays(gl.TRIANGLES, 0, 3);
+  };
+  const render = (p: Pose, time: number) => {
+    gl.useProgram(prog);
+    gl.bindFramebuffer(gl.FRAMEBUFFER, scene.f);
+    gl.viewport(0, 0, scene.w, scene.h);
+    draw(p, time, scene.w, scene.h);
+    pass(preP, scene.t, ping, () => gl.uniform2f(gl.getUniformLocation(preP, 'uTexel'), 1 / scene.w, 1 / scene.h));
+    pass(blurP, ping.t, pong, () => gl.uniform2f(gl.getUniformLocation(blurP, 'uDir'), 3 / scene.w, 0));
+    pass(blurP, pong.t, ping, () => gl.uniform2f(gl.getUniformLocation(blurP, 'uDir'), 0, 3 / scene.h));
+    pass(compP, scene.t, null, () => {
+      gl.activeTexture(gl.TEXTURE3); gl.bindTexture(gl.TEXTURE_2D, ping.t);
+      gl.uniform1i(gl.getUniformLocation(compP, 'uBloom'), 3);
+    });
+  };
+
   const size = () => {
     W = innerWidth; H = innerHeight;
     // 渲染分辨率：桌面 0.9 倍，细丝不糊；窄屏 0.6 倍省电
     const k = Math.min(devicePixelRatio, 2) * (W < 760 ? 0.6 : 0.9);
     canvas.width = Math.round(W * k);
     canvas.height = Math.round(H * k);
-    gl.viewport(0, 0, canvas.width, canvas.height);
+    sizeTarget(scene, canvas.width, canvas.height);
+    sizeTarget(ping, Math.ceil(canvas.width / 4), Math.ceil(canvas.height / 4));
+    sizeTarget(pong, Math.ceil(canvas.width / 4), Math.ceil(canvas.height / 4));
   };
   size();
   addEventListener('resize', size);
@@ -211,7 +284,7 @@ export function mountBlackHole(host: HTMLElement) {
       roll: mix(s.roll ?? 0, 0, u),
       expo: s.expo * (still ? 1 : 1 - Math.pow(1 - Math.min((now - t0) / 2800, 1), 3)),
     };
-    draw(p, still ? 12 : now / 1000, canvas.width, canvas.height);
+    render(p, still ? 12 : now / 1000);
     if (shadowEls.length) {
       const cx = W / 2 + p.sx * H, cy = H / 2 - p.sy * H, Rpx = (shadowTan(p.dist) / p.fov) * H;
       for (const el of shadowEls) {

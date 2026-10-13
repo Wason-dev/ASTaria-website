@@ -182,7 +182,7 @@
   color: rgb(245 242 236 / 0.92);
 }
 /* 这行字只在画面基本全黑之后显现一次（之前按阴影轮廓判断，盘面扫过时会先闪一次） */
-.js .dive-line { opacity: clamp(0, (var(--dv, 0) - 0.7) * 6, 1); }
+.js .dive-line { opacity: clamp(0, (var(--dv, 0) - 0.5) * 5, 1); }
 html.bh-off .dive-line { opacity: 1; }
 .js .dive-cta {
   opacity: clamp(0, (var(--dv, 0) - 0.82) * 6, 1);

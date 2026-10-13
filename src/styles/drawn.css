@@ -133,11 +133,13 @@
 
 /* 地平线：一道很大的发光圆弧，只露出顶部。四个能力排在弧上，当前那个在正上方 */
 .orb-arc { --R: 900px; --step: 15deg; position: relative; height: 210px; margin-top: 28px; overflow: hidden;
-  -webkit-mask: linear-gradient(90deg, transparent, #000 18%, #000 82%, transparent); mask: linear-gradient(90deg, transparent, #000 18%, #000 82%, transparent); }
+  -webkit-mask: linear-gradient(90deg, transparent, #000 18%, #000 82%, transparent), linear-gradient(#000 55%, transparent);
+  -webkit-mask-composite: source-in;
+  mask: linear-gradient(90deg, transparent, #000 18%, #000 82%, transparent) intersect, linear-gradient(#000 55%, transparent); }
 .orb-ring {
   position: absolute; left: 50%; top: 92px; width: calc(var(--R) * 2); height: calc(var(--R) * 2); margin-left: calc(var(--R) * -1);
   border-radius: 50%;
-  background: radial-gradient(closest-side, #000 98.6%, transparent 100%);
+  background: radial-gradient(closest-side, transparent 93%, rgb(0 0 0 / 0.45) 98.8%, transparent 100%);
   box-shadow: 0 0 0 1px rgb(255 236 200 / 0.7), 0 -2px 18px rgb(236 211 164 / 0.55), 0 -10px 60px rgb(236 211 164 / 0.22), inset 0 6px 30px rgb(236 211 164 / 0.12);
 }
 /* 每个节点就是弧上的一个点：按钮本身是这个点（14px），文字浮在它上方。
@@ -162,7 +164,7 @@
 .orb:not(.live) .orb-n:nth-child(4) { --a: 7deg; } .orb:not(.live) .orb-n:nth-child(5) { --a: 22deg; }
 .mc-k { font-size: 13px; color: var(--gold-2); letter-spacing: 0.06em; }
 .mc-c { margin-top: auto; color: var(--fg-3); font-size: 14px; line-height: 1.7; }
-.more-note { margin-top: 18px; color: var(--fg-4); font-size: 12px; }
+.more-note { margin-top: 4px; text-align: center; color: var(--fg-4); font-size: 12px; }
 
 /* 分段按钮 */
 .seg { display: inline-flex; align-self: flex-start; gap: 4px; padding: 4px; border-radius: 999px; background: rgb(0 0 0 / 0.25); box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.1); }
@@ -210,7 +212,7 @@
 .mc.live.open .wish-q div:nth-child(3) { transition-delay: 0.24s; }
 
 @media (max-width: 899px) {
-  .orb-arc { --R: 560px; --step: 13deg; height: 190px; -webkit-mask: none; mask: none; }
+  .orb-arc { --R: 560px; --step: 13deg; height: 190px; -webkit-mask: linear-gradient(#000 55%, transparent); mask: linear-gradient(#000 55%, transparent); }
   .orb-l { font-size: 13px; }
   .orb-n.on .orb-l { font-size: 15px; }
   .mc-demo { min-height: 0; }
