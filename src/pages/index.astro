@@ -75,20 +75,22 @@ const chapters = [
     <a class="more" href="/security/" data-reveal>安全与隐私的完整说明<Icon name="chevron-right" /></a>
   </section>
 
-  <div class="inside" data-cam="inside">
-    <p class="inside-line" data-in-shadow>越过视界</p>
-    <section class="finale" aria-labelledby="fin">
-      <h2 id="fin" class="word small" data-reveal>现在开始</h2>
-      <div class="cta" data-reveal data-delay="1">
-        <a class="btn btn-primary" href="/download/"><Icon name="download" />下载 {release.displayName}</a>
-        <a class="btn btn-ghost" href="/install/">安装说明</a>
-      </div>
-      <ul class="plats" data-reveal data-delay="2">
-        {release.platforms.map((p) => <li><span class="pn">{p.name}</span><span class="status" data-s={p.status}>{p.statusLabel}</span></li>)}
-      </ul>
-      <p class="fine" data-reveal data-delay="3"><span class="mono">{release.version}</span>　{publishedDate}　Windows 为未签名试验版，本版实机安装、Windows 11 与自动升级尚未验收。<a href="/changelog/">更新记录</a></p>
-    </section>
+  <!-- 越过视界：推进程度跟着这一段的滚动走；全黑之后这行字离开，下载区在黑暗里出现 -->
+  <div class="dive" data-cam="dive">
+    <p class="dive-line" data-in-shadow>越过视界</p>
   </div>
+
+  <section class="finale" aria-labelledby="fin">
+    <h2 id="fin" class="word small" data-reveal>现在开始</h2>
+    <div class="cta" data-reveal data-delay="1">
+      <a class="btn btn-primary" href="/download/"><Icon name="download" />下载 {release.displayName}</a>
+      <a class="btn btn-ghost" href="/install/">安装说明</a>
+    </div>
+    <ul class="plats" data-reveal data-delay="2">
+      {release.platforms.map((p) => <li><span class="pn">{p.name}</span><span class="status" data-s={p.status}>{p.statusLabel}</span></li>)}
+    </ul>
+    <p class="fine" data-reveal data-delay="3"><span class="mono">{release.version}</span>　{publishedDate}　Windows 为未签名试验版，本版实机安装、Windows 11 与自动升级尚未验收。<a href="/changelog/">更新记录</a></p>
+  </section>
 
   <script>
     import { mountBlackHole } from '../scripts/blackhole';

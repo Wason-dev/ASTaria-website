@@ -1,19 +1,19 @@
 // 背景黑洞：天文馆里的天体。它按自己的时钟慢慢转，不跟着滚动走。
 //
-//   整页只有一个位置、一个大小。方位角极慢地匀速增加，仰角在一个很小的范围内起伏。
-//   滚到结尾（[data-cam="inside"]）时，镜头用约 3 秒缓缓推进阴影，画面变黑；
-//   往回滚，同样用约 3 秒退出来。这一段按时间走，和滑动速度无关。
+//   黑洞在画面右侧，大，边缘可以出画；文字统一在左侧一栏。方位角极慢地匀速增加，仰角小幅起伏。
+//   结尾 [data-cam="dive"] 这一段：推进程度直接由这一段的滚动位置决定（往下滑多少推进多少，
+//   往回滑就退回），只加一层一阶平滑，不会过冲。画面全黑后，之后的内容都留在黑暗里。
 import { VERT, FRAG } from './blackhole-shader';
 
 interface Pose { dist: number; incl: number; yaw: number; fov: number; sx: number; sy: number; expo: number }
 
 const DIST = 32;
-const R = 0.09; // 阴影半径（屏高）
+const R_HOME = 0.15, R_DOC = 0.09; // 阴影半径（屏高）
 const YAW0 = -0.55;
 const YAW_RATE = 0.00055; // 弧度 / 秒，一整圈约 3 小时
 const INCL_MID = 0.18, INCL_AMP = 0.10;
 const INCL_PERIOD = 140; // 秒
-const DIVE_K = 1.15; // 约 3 秒到位
+const DIVE_K = 20; // 一阶平滑，约 50ms：只抹掉滚轮的颗粒感
 
 const shadowTan = (d: number) => Math.tan(Math.asin(Math.min((2.598 * Math.sqrt(Math.max(1 - 1 / d, 0))) / d, 0.999)));
 const logLerp = (a: number, b: number, t: number) => Math.exp(Math.log(a) + (Math.log(b) - Math.log(a)) * t);
@@ -76,7 +76,7 @@ export function mountBlackHole(host: HTMLElement, opts: { offset?: boolean } = {
   size();
   addEventListener('resize', size);
 
-  const insideEl = document.querySelector('[data-cam="inside"]');
+  const diveEl = document.querySelector<HTMLElement>('[data-cam="dive"]');
   const shadowEls = [...document.querySelectorAll<HTMLElement>('[data-in-shadow]')];
   const t0 = performance.now();
   let dive = 0, last = t0;
@@ -85,14 +85,14 @@ export function mountBlackHole(host: HTMLElement, opts: { offset?: boolean } = {
     const t = (now - t0) / 1000;
     const a = W / H;
     const dist = DIST;
-    const fov = shadowTan(dist) / R;
     const portrait = a < 0.95;
+    const fov = shadowTan(dist) / (opts.offset ? R_DOC : portrait ? 0.12 : R_HOME);
     return {
       dist, fov,
       incl: still ? INCL_MID : INCL_MID + INCL_AMP * Math.sin((2 * Math.PI * t) / INCL_PERIOD),
       yaw: YAW0 + (still ? 0 : YAW_RATE * t),
-      sx: opts.offset && !portrait ? Math.min(a * 0.3, 0.52) : 0,
-      sy: portrait ? 0.26 : opts.offset ? 0.2 : 0.22,
+      sx: opts.offset ? (portrait ? 0 : Math.min(a * 0.3, 0.52)) : portrait ? a * 0.18 : a * 0.25,
+      sy: opts.offset ? (portrait ? 0.26 : 0.2) : portrait ? 0.27 : 0.06,
       expo: 1.05,
     };
   };
@@ -106,7 +106,12 @@ export function mountBlackHole(host: HTMLElement, opts: { offset?: boolean } = {
     requestAnimationFrame(frame);
     const dt = Math.min((now - last) / 1000, 0.05);
     last = now;
-    const want = insideEl && insideEl.getBoundingClientRect().top < H * 0.55 ? 1 : 0;
+    // 推进进度：这一段顶部到屏幕下方 10% 时开始，滚过这一段 75% 的高度时全黑
+    let want = 0;
+    if (diveEl) {
+      const b = diveEl.getBoundingClientRect();
+      want = Math.min(Math.max((H * 0.9 - b.top) / (b.height * 0.75), 0), 1);
+    }
     dive = still ? want : dive + (want - dive) * (1 - Math.exp(-DIVE_K * dt));
     const s = sky(now);
     const i = inside(s);

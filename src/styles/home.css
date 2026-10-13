@@ -1,15 +1,19 @@
-/* 首页。黑洞在穹顶里按自己的时钟慢慢转。内容是说明牌，安静地淡入。滚动是原生的。 */
+/* 首页。黑洞在右侧，大，边缘可以出画，按自己的时钟慢慢转；文字统一在左侧一栏，像展品旁的说明牌。
+   滚动是原生的；只有结尾「越过视界」一段的推进程度跟着滚动位置走。 */
+
+:root { --col: max(var(--pad), calc((100vw - 1180px) / 2)); }
 
 .num { color: var(--gold-2); font-size: 12px; letter-spacing: 0.18em; }
-.tag { display: flex; gap: 12px; justify-content: center; align-items: baseline; color: var(--fg-3); font-size: 12px; letter-spacing: 0.08em; }
+.tag { display: flex; gap: 12px; align-items: baseline; color: var(--fg-3); font-size: 12px; letter-spacing: 0.08em; }
 .tag .mono { color: var(--gold-2); }
 
-/* 开场：标题在黑洞下方，黑洞自己悬在穹顶 */
+/* 开场：左下角一栏，黑洞占据右侧 */
 .hero {
   min-height: 88svh;
-  display: flex; flex-direction: column; align-items: center; text-align: center; justify-content: flex-end;
-  padding: 0 var(--pad) 8vh;
+  display: flex; flex-direction: column; justify-content: flex-end;
+  padding: 0 var(--pad) 9vh var(--col);
 }
+.hero > * { max-width: 520px; }
 .word {
   margin-top: 18px;
   font-size: clamp(52px, 6.6vw, 96px);
@@ -20,32 +24,30 @@
   -webkit-background-clip: text; background-clip: text; color: transparent;
 }
 .word.small { font-size: clamp(36px, 4.4vw, 64px); font-weight: 400; }
-.slogan { margin-top: 14px; font-size: clamp(16px, 1.5vw, 20px); font-weight: 400; letter-spacing: 0.22em; padding-left: 0.22em; color: var(--fg-2); }
-.cta { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; margin-top: 28px; }
+.slogan { margin-top: 14px; font-size: clamp(16px, 1.5vw, 20px); font-weight: 400; letter-spacing: 0.22em; color: var(--fg-2); }
+.cta { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 28px; }
 .meta { margin-top: 18px; color: var(--fg-4); font-size: 13px; }
 .meta a, .fine a { color: var(--fg-2); text-decoration: underline; text-underline-offset: 3px; text-decoration-color: rgb(255 255 255 / 0.22); }
 .meta a:hover, .fine a:hover { color: var(--fg); }
 
-.peek { width: min(88vw, 1080px); margin: 0 auto 18vh; padding: 8px; border-radius: 28px; background: rgb(255 255 255 / 0.05); }
+.peek { width: min(100% - var(--col) - var(--pad), 1080px); margin: 0 0 18vh var(--col); padding: 8px; border-radius: 28px; background: rgb(255 255 255 / 0.05); }
 .peek .frame { border-radius: 20px; }
 
 .intro {
-  max-width: 22em; margin: 0 auto 22vh; padding: 0 var(--pad);
-  text-align: center; font-size: clamp(20px, 2vw, 28px); line-height: 1.6; font-weight: 400; color: var(--fg);
+  max-width: 22em; margin: 0 0 22vh var(--col); padding-right: var(--pad);
+  font-size: clamp(20px, 2vw, 28px); line-height: 1.6; font-weight: 400; color: var(--fg);
 }
 
-/* 章节：截图一片玻璃，说明牌另一片，错位叠放。不吸顶、不跟手、不翻转。 */
+/* 章节：截图一片玻璃，说明牌另一片，错位叠放，左右交替 */
 .ch {
   display: grid;
   grid-template-columns: minmax(0, 1.35fr) minmax(240px, 0.7fr);
   align-items: end;
-  gap: 0;
   width: min(100% - var(--pad) * 2, 1180px);
   margin: 0 auto 22vh;
 }
 .ch.flip { grid-template-columns: minmax(240px, 0.7fr) minmax(0, 1.35fr); }
 .ch.flip .pane-img { order: 2; }
-
 .pane-img { padding: 8px; border-radius: 26px; background: rgb(255 255 255 / 0.05); }
 .pane-img .frame { border-radius: 18px; }
 .pane-text {
@@ -66,30 +68,34 @@
 .facts dt { color: var(--fg-4); font-size: 11px; letter-spacing: 0.08em; }
 .facts dd { margin: 0; color: var(--fg); font-size: 15px; }
 
-.vows-sec { width: min(100% - var(--pad) * 2, 640px); margin: 0 auto 18vh; }
+.vows-sec { max-width: 620px; margin: 0 0 18vh var(--col); padding-right: var(--pad); }
 .vows { list-style: none; margin: 28px 0 0; padding: 0; }
 .vows li { padding: 16px 0; border-top: 1px solid rgb(255 255 255 / 0.1); color: var(--fg-2); font-size: 16px; line-height: 1.7; }
 .vows li:last-child { border-bottom: 1px solid rgb(255 255 255 / 0.1); }
 .vows-sec .more { margin-top: 28px; }
 
-/* 越过视界：镜头按时间推进阴影。字在黑暗里显现。 */
-.inside { min-height: 220svh; }
-.inside-line {
+/* 越过视界：这一段只负责推进。字定在画面中央，阴影把它包住时它才显现；
+   这一段结束时字随之离开，不会压到下面的下载区。 */
+.dive { height: 160svh; }
+.dive-line {
   position: sticky; top: calc(50svh - 0.6em); margin: 0; text-align: center;
   font-size: clamp(22px, 2.4vw, 32px); font-weight: 300; letter-spacing: 0.36em; padding-left: 0.36em;
   color: rgb(245 242 236 / 0.9);
 }
 
-.finale { min-height: 100svh; display: flex; flex-direction: column; align-items: center; text-align: center; padding: 28vh var(--pad) 12vh; }
-.plats { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px 28px; margin: 32px 0 0; padding: 0; list-style: none; }
+/* 下载：同样在左侧一栏，在黑暗里 */
+.finale { min-height: 90svh; display: flex; flex-direction: column; justify-content: center; padding: 10vh var(--pad) 12vh var(--col); }
+.finale > * { max-width: 640px; }
+.plats { display: flex; flex-wrap: wrap; gap: 10px 28px; margin: 32px 0 0; padding: 0; list-style: none; }
 .plats li { display: flex; align-items: center; gap: 10px; }
 .pn { color: var(--fg); font-size: 15px; font-weight: 500; }
-.finale .fine { margin-top: 22px; max-width: 46em; }
+.finale .fine { margin-top: 22px; }
 
 @media (max-width: 899px) {
   .hero { padding-bottom: 8vh; }
+  .peek { width: auto; margin-right: var(--pad); }
   .ch, .ch.flip { grid-template-columns: 1fr; }
   .ch.flip .pane-img { order: 0; }
   .pane-text, .ch.flip .pane-text { margin: -18px 12px 0; }
-  .inside-line { letter-spacing: 0.18em; padding-left: 0.18em; }
+  .dive-line { letter-spacing: 0.18em; padding-left: 0.18em; }
 }
