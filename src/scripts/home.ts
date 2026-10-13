@@ -52,11 +52,25 @@ export function mountHome() {
     const texts: string[] = JSON.parse(tone.querySelector('[data-tones]')!.textContent!);
     const reply = tone.querySelector<HTMLElement>('[data-reply]')!;
     const bs = [...tone.querySelectorAll<HTMLButtonElement>('[data-i]')];
-    bs.forEach((b) => b.addEventListener('click', () => {
+    // 换档：先出现「正在输入」的三个点，再换成这一档的回复
+    let typing = 0;
+    const say = (b: HTMLButtonElement) => {
       bs.forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
-      reply.classList.remove('swap'); void reply.offsetWidth; reply.classList.add('swap');
-      reply.textContent = texts[Number(b.dataset.i)];
-    }));
+      clearTimeout(typing);
+      reply.classList.add('typing'); reply.textContent = '';
+      typing = window.setTimeout(() => {
+        reply.classList.remove('typing', 'swap'); void reply.offsetWidth; reply.classList.add('swap');
+        reply.textContent = texts[Number(b.dataset.i)];
+      }, reduce ? 0 : 700);
+    };
+    let touched = false;
+    bs.forEach((b) => b.addEventListener('click', () => { touched = true; say(b); }));
+    // 没人点的时候，这块在最前面时自己从低到高轮一遍
+    let k = 1;
+    setInterval(() => {
+      if (reduce || touched || !tone.classList.contains('on') || document.hidden) return;
+      k = (k + 1) % bs.length; say(bs[k]);
+    }, 3400);
   }
   const mem = document.querySelector<HTMLElement>('[data-memory]');
   if (mem) {
@@ -73,21 +87,31 @@ export function mountHome() {
   if (model) {
     const bs = [...model.querySelectorAll<HTMLButtonElement>('[data-m]')];
     const views = [...model.querySelectorAll<HTMLElement>('[data-show]')];
+    const dest = model.querySelector<HTMLElement>('[data-dest]')!;
     bs.forEach((b) => b.addEventListener('click', () => {
       bs.forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
       views.forEach((v) => (v.hidden = v.dataset.show !== b.dataset.m));
+      dest.textContent = b.dataset.m === 'local' ? '这台电脑' : 'DeepSeek';
+      model.classList.toggle('local', b.dataset.m === 'local');
     }));
   }
   const wish = document.querySelector<HTMLElement>('[data-wish]');
   if (wish) {
     wish.classList.add('live');
     const btn = wish.querySelector<HTMLButtonElement>('[data-clarify]')!;
-    btn.addEventListener('click', () => {
-      const open = !wish.classList.contains('open');
+    let wishTouched = false;
+    const setOpen = (open: boolean) => {
       wish.classList.toggle('open', open);
       btn.setAttribute('aria-expanded', String(open));
       btn.textContent = open ? '收起' : '聊清楚';
-    });
+    };
+    btn.addEventListener('click', () => { wishTouched = true; setOpen(!wish.classList.contains('open')); });
+    // 转到最前面时，自己「聊清楚」一次：三行逐行展开
+    new MutationObserver(() => {
+      if (wishTouched) return;
+      if (wish.classList.contains('on')) setTimeout(() => wish.classList.contains('on') && !wishTouched && setOpen(true), reduce ? 0 : 900);
+      else setOpen(false);
+    }).observe(wish, { attributes: true, attributeFilter: ['class'] });
   }
 
   // ---------- 析熙的四个能力：排在地平线上，点一个就转到正上方 ----------

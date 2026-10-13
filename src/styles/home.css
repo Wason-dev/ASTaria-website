@@ -138,10 +138,11 @@
 /* ---------- 细节区：横向卡片 ---------- */
 .carousel { margin-top: 48px; }
 .track {
-  display: flex; gap: 20px; margin: 0; padding: 0; list-style: none;
+  display: flex; gap: 20px; margin: -24px 0 -56px; padding: 24px 0 56px; list-style: none;
   overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; overscroll-behavior-x: contain;
 }
 .track::-webkit-scrollbar { display: none; }
+.js .track [data-reveal] { transform: none; }
 .card { flex: 0 0 min(66%, 760px); scroll-snap-align: start; }
 .card-img { overflow: hidden; border-radius: 26px; padding: 8px; }
 .card-img .shot { transition: transform 1.2s var(--ease); }
