@@ -1,0 +1,12 @@
+ASTaria website
+Copyright 2026 Wason-dev
+
+This website's source code is licensed under the Apache License, Version 2.0
+(see LICENSE).
+
+The ASTaria name and logo are project marks and are not granted as a
+trademark license by Apache-2.0.
+
+Product screenshots in src/assets/shots/ show the real ASTaria interface with
+fictional demo data. The Geist Mono font (public/fonts/) is licensed
+under the SIL Open Font License 1.1 (see public/fonts/OFL.txt).

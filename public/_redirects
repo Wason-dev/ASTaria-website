@@ -1,0 +1,3 @@
+# Cloudflare Pages：服务器端永久跳转。安装说明已并入下载页，原来的锚点（如 #windows）浏览器会自动带上。
+/install    /download/  301
+/install/   /download/  301

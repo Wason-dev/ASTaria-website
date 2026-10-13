@@ -31,7 +31,8 @@ for (const [page, html] of pages) {
     for (const raw of m[1].split(',').map((s) => s.trim().split(/\s+/)[0])) {
       if (!raw || raw.startsWith('data:') || raw.startsWith('mailto:')) continue;
       if (/^https?:\/\//.test(raw)) {
-        if (!raw.includes('astaria.invalid')) external.add(raw);
+        // 指向本站自己的绝对地址（canonical、Open Graph、sitemap）不发请求：上线前域名还不能访问
+        if (!/^https?:\/\/(www\.)?astaria\.(space|invalid)(\/|$)/.test(raw)) external.add(raw);
         continue;
       }
       internal.push({ page, raw });

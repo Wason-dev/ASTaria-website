@@ -1,0 +1,11 @@
+// Cloudflare Workers 静态站点：只发布 dist/ 里的构建结果，没有服务端代码。
+// 构建命令 npm run build，部署命令 npx wrangler deploy。
+{
+  "name": "astaria-website",
+  "compatibility_date": "2026-10-13",
+  "assets": {
+    "directory": "./dist",
+    "html_handling": "auto-trailing-slash",
+    "not_found_handling": "404-page"
+  }
+}

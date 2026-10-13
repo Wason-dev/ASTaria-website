@@ -1,8 +1,8 @@
 import { defineConfig } from 'astro/config';
 
-// 部署域名尚未确定；部署时通过 SITE_URL 注入，Open Graph 绝对地址依赖它。
+// 正式域名 astaria.space。预览部署可以用 SITE_URL 覆盖；Open Graph、canonical 与 sitemap 的绝对地址都依赖它。
 export default defineConfig({
-  site: process.env.SITE_URL || 'https://astaria.invalid',
+  site: process.env.SITE_URL || 'https://astaria.space',
   output: 'static',
   trailingSlash: 'ignore',
   build: { format: 'directory', inlineStylesheets: 'auto' },
