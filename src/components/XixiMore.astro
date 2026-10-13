@@ -3,9 +3,9 @@
 // 点一个，弧线转动把它送到正上方，上面的玻璃面板换成它的演示；不点时自己慢慢转。
 // 内容只写 Beta12.1 已发布的功能（见应用 CHANGELOG / FEATURES）；对话与数据为示意。
 const tones = [
-  { k: '低', t: '好，先休息一下。想写的时候告诉我，我把最短的那份排在前面。' },
-  { k: '中', t: '那就先挑最短的一份，二十分钟写完就收工，剩下的明天再说？' },
-  { k: '高', t: '不想写也得写一点，我又不会替你交。先把最短那份做了，二十分钟，我看着。' },
+  { k: '低', t: '好，先去玩吧。报告我排在 21:00，到时候提醒你。' },
+  { k: '中', t: '一局两局都行～ 不过 21:00 那段我先给报告占好了，玩完记得回来。' },
+  { k: '高', t: '哈？报告还空着就想开黑，挺会挑时候。行，玩吧——21:00 那块我盯着呢，到点还没动笔，我可要念你了。' },
 ];
 const nodes = ['个性三档', '记得，也能忘', '模型自己选', '心愿，先聊清楚'];
 ---
@@ -19,7 +19,7 @@ const nodes = ['个性三档', '记得，也能忘', '模型自己选', '心愿�
         {tones.map((x, i) => <button type="button" aria-pressed={i === 1 ? 'true' : 'false'} data-i={i}>{x.k}</button>)}
       </div>
       <div class="mc-demo">
-        <p class="bub me">今天不想写作业。</p>
+        <p class="bub me">报告还没写，今晚想先打游戏。</p>
         <p class="bub ai" aria-live="polite" data-reply>{tones[1].t}</p>
       </div>
       <p class="mc-c">默认「中」。只改说话的方式，不改提醒频率和权限；你难过或着急时，高档也会收起打趣。</p>
@@ -60,18 +60,28 @@ const nodes = ['个性三档', '记得，也能忘', '模型自己选', '心愿�
       <p class="mc-c">在「设置 → 析熙 → 连接模型」切换。本机模型需要你自己运行。</p>
     </article>
 
-    <!-- 心愿 -->
-    <article class="mc glass" data-glass data-wish id="op3" aria-label={nodes[3]}>
+    <!-- 心愿：析熙问三句、你答三句，答案一条条填进心愿卡片，最后才可以加入余时 -->
+    <article class="mc glass" data-glass data-wish data-hold="16000" id="op3" aria-label={nodes[3]}>
       <p class="mc-k">{nodes[3]}</p>
-      <div class="wish">
-        <p class="wish-t">想学吉他</p>
-        <button type="button" class="mini" data-clarify aria-expanded="false">聊清楚</button>
+      <div class="wz">
+        <div class="wz-card">
+          <p class="wz-t">想学吉他<span data-wz-tag>心愿</span></p>
+          {[['为什么', '想在毕业晚会上弹一首'], ['第一小步', '每周两次，每次 20 分钟'], ['需要', '借一把吉他']].map(([k, v], i) => (
+            <p class="wz-f" style={`--i:${i}`}><span class="wz-k">{k}</span><span class="wz-v"><em class="wz-empty">待聊清楚</em><em class="wz-full">{v}</em></span></p>
+          ))}
+          <p class="wz-go"><button type="button" class="mini" data-join disabled>加入余时</button></p>
+          <p class="wz-joined" aria-live="polite"></p>
+        </div>
+        <div class="wz-chat">
+          <p class="wz-ch">析熙<button type="button" class="wz-again" data-clarify>再聊一次</button></p>
+          <div class="wz-log">
+            {[['ai', '为什么想学？'], ['me', '毕业晚会上想弹一首'], ['ai', '第一小步可以多小？'], ['me', '每周两次，每次 20 分钟'], ['ai', '还需要准备什么？'], ['me', '先借一把吉他']].map(([w, t], i) => (
+              <p class:list={['wz-b', w]} style={`--i:${i}`}>{t}</p>
+            ))}
+          </div>
+          <p class="wz-in"><span data-wz-field>哪里需要一起想想</span><b>发给析熙</b></p>
+        </div>
       </div>
-      <dl class="wish-q">
-        <div><dt>为什么</dt><dd>想在毕业晚会上弹一首</dd></div>
-        <div><dt>第一小步</dt><dd>每周两次，每次 20 分钟</dd></div>
-        <div><dt>需要</dt><dd>借一把吉他</dd></div>
-      </dl>
       <p class="mc-c">析熙在对话里帮你想清楚动机和第一小步，写回同一份心愿。你明确选择后，它才会变成余时里自动安排的目标。</p>
     </article>
   </div>

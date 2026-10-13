@@ -95,22 +95,74 @@ export function mountHome() {
       model.classList.toggle('local', b.dataset.m === 'local');
     }));
   }
+  // 心愿：析熙问一句 → 回答在输入框里打出来、发出 → 光点飞进卡片，填上一栏。三栏都填好后才能「加入余时」
   const wish = document.querySelector<HTMLElement>('[data-wish]');
   if (wish) {
     wish.classList.add('live');
-    const btn = wish.querySelector<HTMLButtonElement>('[data-clarify]')!;
-    let wishTouched = false;
-    const setOpen = (open: boolean) => {
-      wish.classList.toggle('open', open);
-      btn.setAttribute('aria-expanded', String(open));
-      btn.textContent = open ? '收起' : '聊清楚';
+    const log = wish.querySelector<HTMLElement>('.wz-log')!;
+    const field = wish.querySelector<HTMLElement>('[data-wz-field]')!;
+    const send = wish.querySelector<HTMLElement>('.wz-in b')!;
+    const fields = [...wish.querySelectorAll<HTMLElement>('.wz-f')];
+    const join = wish.querySelector<HTMLButtonElement>('[data-join]')!;
+    const tag = wish.querySelector<HTMLElement>('[data-wz-tag]')!;
+    const joined = wish.querySelector<HTMLElement>('.wz-joined')!;
+    const qa: [string, string][] = [['为什么想学？', '毕业晚会上想弹一首'], ['第一小步可以多小？', '每周两次，每次 20 分钟'], ['还需要准备什么？', '先借一把吉他']];
+    const hint = field.textContent!;
+    let run = 0;
+    const wait = (ms: number, id: number) => new Promise<boolean>((done) => setTimeout(() => done(id === run && wish.classList.contains('on')), reduce ? 0 : ms));
+    const bubble = (who: 'ai' | 'me', text: string) => {
+      const p = document.createElement('p');
+      p.className = `wz-b ${who} pop`;
+      p.textContent = text;
+      log.append(p);
+      return p;
     };
-    btn.addEventListener('click', () => { wishTouched = true; setOpen(!wish.classList.contains('open')); });
-    // 转到最前面时，自己「聊清楚」一次：三行逐行展开
+    const reset = () => {
+      log.replaceChildren();
+      field.textContent = hint; field.classList.remove('typing');
+      fields.forEach((f) => f.classList.remove('filled', 'lit'));
+      join.disabled = true; join.textContent = '加入余时';
+      wish.classList.remove('joined', 'ready');
+      tag.textContent = '心愿'; joined.textContent = '';
+    };
+    const play = async () => {
+      const id = ++run;
+      reset();
+      for (let i = 0; i < qa.length; i++) {
+        const [q, ans] = qa[i];
+        const dots = bubble('ai', ''); dots.classList.add('typing');
+        if (!(await wait(700, id))) return;
+        dots.classList.remove('typing'); dots.textContent = q;
+        if (!(await wait(500, id))) return;
+        // 回答在输入框里逐字打出来
+        field.textContent = ''; field.classList.add('typing');
+        for (const ch of ans) { if (!(await wait(45, id))) return; field.textContent += ch; }
+        if (!(await wait(250, id))) return;
+        send.classList.remove('press'); void send.offsetWidth; send.classList.add('press');
+        field.textContent = hint; field.classList.remove('typing');
+        const me = bubble('me', ans);
+        me.classList.add('fly');
+        if (!(await wait(650, id))) return;
+        fields[i].classList.add('filled', 'lit');
+        if (!(await wait(450, id))) return;
+      }
+      wish.classList.add('ready');
+      join.disabled = false;
+    };
+    join.addEventListener('click', () => {
+      wish.classList.add('joined');
+      tag.textContent = '余时目标';
+      join.disabled = true; join.textContent = '已加入';
+      joined.textContent = '已加入余时 · 每周两次 · 每次 20 分钟，按周排进空档';
+    });
+    wish.querySelector('[data-clarify]')!.addEventListener('click', play);
+    // 只在「转到最前面」这一刻播放（记住上一次的状态，避免自己触发自己）
+    let wasOn = wish.classList.contains('on');
     new MutationObserver(() => {
-      if (wishTouched) return;
-      if (wish.classList.contains('on')) setTimeout(() => wish.classList.contains('on') && !wishTouched && setOpen(true), reduce ? 0 : 900);
-      else setOpen(false);
+      const on = wish.classList.contains('on');
+      if (on === wasOn) return;
+      wasOn = on;
+      if (on) play(); else run++;
     }).observe(wish, { attributes: true, attributeFilter: ['class'] });
   }
 
@@ -142,17 +194,24 @@ export function mountHome() {
         b.tabIndex = Math.abs(d) >= 1.5 ? -1 : 0;
       });
     };
+    const stage = orb.querySelector<HTMLElement>('.orb-stage')!;
+    const fit = () => { stage.style.height = `${ps[cur].offsetHeight}px`; };
+    new ResizeObserver(fit).observe(ps[0].parentElement!);
+    ps.forEach((p) => new ResizeObserver(() => p.classList.contains('on') && fit()).observe(p));
     const select = (i: number) => {
       let d = i - cur;
       d = ((d % n) + n + n / 2) % n - n / 2;
       pos += d; cur = ((i % n) + n) % n;
       ns.forEach((b, k) => { b.classList.toggle('on', k === cur); b.setAttribute('aria-pressed', String(k === cur)); });
       ps.forEach((p, k) => { p.classList.toggle('on', k === cur); p.toggleAttribute('inert', k !== cur); });
+      fit();
       place();
     };
     // 不点时每 9 秒自己转到下一个；指针在上面、焦点在里面、或不在屏幕上时暂停；点过一次就不再自己转
     let auto = !reduce, hover = false, seen = false, timer = 0;
-    const arm = () => { clearTimeout(timer); if (auto && !hover && seen) timer = window.setTimeout(() => { select(cur + 1); arm(); }, 9000); };
+    // 每块停留的时间：默认 9 秒；心愿要把一整段对话播完再停一会儿，给 16 秒
+    const hold = (i: number) => Number(ps[i].dataset.hold || 9000);
+    const arm = () => { clearTimeout(timer); if (auto && !hover && seen) timer = window.setTimeout(() => { select(cur + 1); arm(); }, hold(cur)); };
     ns.forEach((b, i) => b.addEventListener('click', () => { auto = false; select(i); }));
     orb.addEventListener('pointerenter', () => { hover = true; arm(); });
     orb.addEventListener('pointerleave', () => { hover = false; arm(); });
@@ -178,8 +237,18 @@ export function mountHome() {
       prev.disabled = track.scrollLeft <= 2;
       next.disabled = track.scrollLeft >= max;
     };
-    prev.addEventListener('click', () => track.scrollBy({ left: -step(), behavior: reduce ? 'auto' : 'smooth' }));
-    next.addEventListener('click', () => track.scrollBy({ left: step(), behavior: reduce ? 'auto' : 'smooth' }));
+    // 按卡片翻页：算出目标卡片的位置再滚过去。带吸附的横向容器里，平滑滚动有时一动不动，
+    // 所以半秒后如果还没动，就直接跳到目标位置
+    const go = (dir: number) => {
+      const st = step(), from = track.scrollLeft;
+      const max = track.scrollWidth - track.clientWidth;
+      const to = Math.min(Math.max((Math.round(from / st) + dir) * st, 0), max);
+      if (Math.abs(to - from) < 2) return;
+      track.scrollTo({ left: to, behavior: reduce ? 'auto' : 'smooth' });
+      setTimeout(() => { if (Math.abs(track.scrollLeft - from) < 2) track.scrollLeft = to; update(); }, 500);
+    };
+    prev.addEventListener('click', () => go(-1));
+    next.addEventListener('click', () => go(1));
     track.addEventListener('scroll', update, { passive: true });
     addEventListener('resize', update);
     update();
