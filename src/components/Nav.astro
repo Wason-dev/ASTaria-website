@@ -5,6 +5,7 @@ import { repoUrl } from '../data/release';
 interface Props { current: string }
 const { current } = Astro.props;
 const links = [
+  { href: '/', label: '首页', id: 'home' },
   { href: '/download/', label: '下载', id: 'download' },
   { href: '/changelog/', label: '更新记录', id: 'changelog' },
   { href: '/install/', label: '安装', id: 'install' },
@@ -25,7 +26,6 @@ const links = [
     <details class="menu">
       <summary aria-label="打开导航"><Icon name="menu" size={20} /></summary>
       <nav class="sheet" aria-label="移动导航">
-        <a href="/" aria-current={current === 'home' ? 'page' : undefined}>概览</a>
         {links.map((l) => <a href={l.href} aria-current={l.id === current ? 'page' : undefined}>{l.label}</a>)}
         <a href={repoUrl} target="_blank" rel="noopener noreferrer">GitHub<span class="sr-only">（新窗口打开）</span></a>
       </nav>
