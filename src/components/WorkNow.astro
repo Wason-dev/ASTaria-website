@@ -1,0 +1,31 @@
+---
+// 画出来的工作台：「现在可以开始」的事项重新排序，能马上开始的排到最前；右边进入专注，计时环走起来，步骤逐个打勾。
+// 事项与应用截图中的演示数据一致。
+const rows = [
+  { t: '准备课堂演示', m: '10/9 截止 · 预计 20 分钟', from: 2, to: 0, now: true },
+  { t: '归还图书馆图书', m: '10/10 截止 · 预计 10 分钟', from: 0, to: 1, now: true },
+  { t: '整理小组分工', m: '10/11 截止 · 预计 30 分钟', from: 3, to: 2 },
+  { t: '选一本下月想读的书', m: '待安排 · 预计 15 分钟', from: 1, to: 3 },
+].sort((a, b) => a.to - b.to);
+const steps = ['整理实验数据表', '写误差分析', '写结论', '导出 PDF 并提交'];
+---
+
+<div class="wn glass" data-glass data-play role="img" aria-label="示意图：现在可以开始的事项排到最前；进入专注后计时，任务步骤逐个勾选">
+  <div class="wn-list">
+    <p class="dr-h">现在可以开始</p>
+    {rows.map((r, i) => (
+      <div class:list={['wn-row', { now: r.now }]} style={`--d:${r.from - r.to};--i:${i}`}>
+        <b>{r.t}</b><span>{r.m}</span>
+      </div>
+    ))}
+  </div>
+  <div class="wn-focus">
+    <p class="dr-h">专注</p>
+    <div class="wn-timer">
+      <svg viewBox="0 0 100 100" aria-hidden="true"><circle class="trk" cx="50" cy="50" r="44" /><circle class="arc" cx="50" cy="50" r="44" /></svg>
+      <p class="mono">35:00</p>
+    </div>
+    <p class="wn-task">完成物理实验报告</p>
+    <ul class="wn-steps">{steps.map((s, i) => <li style={`--i:${i}`}>{s}</li>)}</ul>
+  </div>
+</div>

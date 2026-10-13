@@ -1,0 +1,14 @@
+---
+// 画出来的弦轨：明天的几组事项依次升到地平线上，两组交换顺序；今天已经排满，也不挡住只改明天的保存。
+// 组名与应用截图中的演示数据一致。
+const groups = ['英语回读', '英语演讲提纲', '整理课堂笔记', '补充实验图表', '检查小组资料'];
+---
+
+<div class="hz glass" data-glass data-play role="img" aria-label="示意图：明天的五组事项排在地平线上，其中两组交换顺序；今天已排满，保存仍然可用">
+  <p class="hz-tabs"><span>今天</span><span class="on">明天</span><span>后天</span></p>
+  <div class="hz-arc">
+    <span class="hz-ring" aria-hidden="true"></span>
+    {groups.map((g, i) => <span class:list={['hz-n', { a: i === 1, b: i === 2 }]} style={`--k:${i - 2};--i:${i}`}><em>{g}</em></span>)}
+  </div>
+  <p class="hz-bar"><span class="hz-full">今天 · 已排满</span><span class="hz-save">保存</span></p>
+</div>

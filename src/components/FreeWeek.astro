@@ -1,0 +1,35 @@
+---
+// 画出来的余时：三个持续目标各自有频率和单次时长，练习时段一块块落进这一周的空档；过去的几次留着完成记录。
+// 频率与时长为示意。
+const goals = [
+  { k: '编程', f: '每周 3 次 · 45 分钟', c: 'g1' },
+  { k: '英语阅读', f: '每周 4 次 · 30 分钟', c: 'g2' },
+  { k: '速写', f: '每周 2 次 · 20 分钟', c: 'g3' },
+];
+const days = ['一', '二', '三', '四', '五', '六', '日'];
+// 每天 6 个时段：1 = 已被课程或任务占用
+const busy = [[1,1,0,1,0,0],[1,0,1,1,0,0],[0,1,1,0,1,0],[1,1,0,0,1,0],[1,0,1,0,0,1],[0,0,0,1,0,0],[0,0,0,0,0,0]];
+// 练习落点：day, slot, goal, done（已完成）
+const sessions = [
+  [0,4,'g1',1],[0,5,'g2',1],[1,4,'g2',1],[2,0,'g3',0],[2,5,'g1',0],[3,2,'g2',0],[4,3,'g1',0],[5,1,'g2',0],[6,2,'g3',0],
+];
+---
+
+<div class="fw glass" data-glass data-play role="img" aria-label="示意图：编程、英语阅读和速写三个持续目标，按频率排进这一周的空档，已完成的练习保留记录">
+  <div class="fw-goals">
+    {goals.map((g) => <p class:list={['fw-g', g.c]}><b>{g.k}</b><span>{g.f}</span></p>)}
+  </div>
+  <div class="fw-week">
+    {days.map((d, i) => (
+      <div class="fw-d">
+        <p class="fw-dh">周{d}</p>
+        <div class="fw-col">
+          {busy[i].map((v) => <span class:list={['fw-s', { busy: v }]}></span>)}
+          {sessions.filter((s) => s[0] === i).map((s, k) => (
+            <span class:list={['fw-p', s[2], { done: s[3] }]} style={`--slot:${s[1]};--i:${i * 2 + k}`}></span>
+          ))}
+        </div>
+      </div>
+    ))}
+  </div>
+</div>
