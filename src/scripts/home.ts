@@ -46,6 +46,50 @@ export function mountHome() {
   }), { threshold: 0.45 });
   plays.forEach((d) => pio.observe(d));
 
+  // ---------- 析熙的更多：几块可以点的小界面 ----------
+  const tone = document.querySelector<HTMLElement>('[data-tone]');
+  if (tone) {
+    const texts: string[] = JSON.parse(tone.querySelector('[data-tones]')!.textContent!);
+    const reply = tone.querySelector<HTMLElement>('[data-reply]')!;
+    const bs = [...tone.querySelectorAll<HTMLButtonElement>('[data-i]')];
+    bs.forEach((b) => b.addEventListener('click', () => {
+      bs.forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
+      reply.classList.remove('swap'); void reply.offsetWidth; reply.classList.add('swap');
+      reply.textContent = texts[Number(b.dataset.i)];
+    }));
+  }
+  const mem = document.querySelector<HTMLElement>('[data-memory]');
+  if (mem) {
+    const card = mem.querySelector<HTMLElement>('.mem')!, done = mem.querySelector<HTMLElement>('.mem-done')!;
+    const btn = mem.querySelector<HTMLButtonElement>('[data-forget]')!;
+    btn.addEventListener('click', () => {
+      const gone = !card.classList.contains('gone');
+      card.classList.toggle('gone', gone);
+      btn.textContent = gone ? '撤销' : '忘记';
+      done.textContent = gone ? '已忘记。之后的对话不再用到它；原来的聊天还在。' : '';
+    });
+  }
+  const model = document.querySelector<HTMLElement>('[data-model]');
+  if (model) {
+    const bs = [...model.querySelectorAll<HTMLButtonElement>('[data-m]')];
+    const views = [...model.querySelectorAll<HTMLElement>('[data-show]')];
+    bs.forEach((b) => b.addEventListener('click', () => {
+      bs.forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
+      views.forEach((v) => (v.hidden = v.dataset.show !== b.dataset.m));
+    }));
+  }
+  const wish = document.querySelector<HTMLElement>('[data-wish]');
+  if (wish) {
+    wish.classList.add('live');
+    const btn = wish.querySelector<HTMLButtonElement>('[data-clarify]')!;
+    btn.addEventListener('click', () => {
+      const open = !wish.classList.contains('open');
+      wish.classList.toggle('open', open);
+      btn.setAttribute('aria-expanded', String(open));
+      btn.textContent = open ? '收起' : '聊清楚';
+    });
+  }
+
   // ---------- 细节区卡片 ----------
   const car = document.querySelector<HTMLElement>('[data-carousel]');
   if (car) {

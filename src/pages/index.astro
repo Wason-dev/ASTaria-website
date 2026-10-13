@@ -6,6 +6,7 @@ import XixiChat from '../components/XixiChat.astro';
 import DayGaps from '../components/DayGaps.astro';
 import WeekShift from '../components/WeekShift.astro';
 import SyncMap from '../components/SyncMap.astro';
+import XixiMore from '../components/XixiMore.astro';
 import '../styles/drawn.css';
 import '../styles/home.css';
 import { release, releaseUrl, publishedDate } from '../data/release';
@@ -120,6 +121,13 @@ const cards = [
         <button type="button" class="arrow" data-next aria-label="下一张"><Icon name="chevron-right" size={20} /></button>
       </div>
     </div>
+  </section>
+
+  <!-- 析熙的更多：个性、记忆、模型、心愿 -->
+  <section class="more-sec" aria-labelledby="m-h">
+    <p class="eyebrow" data-reveal>析熙</p>
+    <h2 id="m-h" class="headline sm" data-reveal="lines"><span class="ln"><span>照你的方式说话</span></span><span class="ln"><span>记得你说过的话</span></span></h2>
+    <XixiMore />
   </section>
 
   <!-- 数据 -->

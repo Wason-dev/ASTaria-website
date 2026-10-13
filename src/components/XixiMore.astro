@@ -1,0 +1,73 @@
+---
+// 析熙的四个小功能，每块都可以点：个性三档、带来源的记忆、选模型、把心愿聊清楚。
+// 内容只写 Beta12.1 已发布的功能（见应用 CHANGELOG / FEATURES）；对话与数据为示意。
+const tones = [
+  { k: '低', t: '好，先休息一下。想写的时候告诉我，我把最短的那份排在前面。' },
+  { k: '中', t: '那就先挑最短的一份，二十分钟写完就收工，剩下的明天再说？' },
+  { k: '高', t: '不想写也得写一点，我又不会替你交。先把最短那份做了，二十分钟，我看着。' },
+];
+---
+
+<div class="more-grid">
+  <!-- 个性 -->
+  <article class="mc glass" data-glass data-reveal="up" data-tone>
+    <p class="mc-k">个性三档</p>
+    <div class="seg" role="group" aria-label="析熙的个性">
+      {tones.map((x, i) => <button type="button" aria-pressed={i === 1 ? 'true' : 'false'} data-i={i}>{x.k}</button>)}
+    </div>
+    <div class="mc-demo">
+      <p class="bub me">今天不想写作业。</p>
+      <p class="bub ai" aria-live="polite" data-reply>{tones[1].t}</p>
+    </div>
+    <p class="mc-c">默认「中」。只改说话的方式，不改提醒频率和权限；你难过或着急时，高档也会收起打趣。</p>
+    <script type="application/json" data-tones set:html={JSON.stringify(tones.map((x) => x.t))} />
+  </article>
+
+  <!-- 记忆 -->
+  <article class="mc glass" data-glass data-reveal="up" data-delay="1" data-memory>
+    <p class="mc-k">记得，也能忘</p>
+    <div class="mem">
+      <p class="mem-t">晚上 10 点以后不安排任务</p>
+      <p class="mem-s">来源：「十点以后别给我排东西了」· 10/6 对话</p>
+      <button type="button" class="mini" data-forget>忘记</button>
+    </div>
+    <p class="mem-done" aria-live="polite"></p>
+    <p class="mc-c">每条记忆都带着你的原话。可以在设置里查看来源、更正，或者忘记；原始聊天仍可回看。</p>
+  </article>
+
+  <!-- 模型 -->
+  <article class="mc glass" data-glass data-reveal="up" data-delay="2" data-model>
+    <p class="mc-k">模型自己选</p>
+    <div class="seg" role="group" aria-label="模型连接">
+      <button type="button" aria-pressed="true" data-m="cloud">云端</button>
+      <button type="button" aria-pressed="false" data-m="local">本机</button>
+    </div>
+    <div class="mdl" data-show="cloud">
+      <p class="mdl-n">DeepSeek</p>
+      <p class="mdl-f mono">API Key · 钥匙串 / DPAPI</p>
+      <p class="mdl-s">只发送这一次请求需要的上下文。</p>
+    </div>
+    <div class="mdl" data-show="local" hidden>
+      <p class="mdl-n">Ollama · LM Studio</p>
+      <p class="mdl-f mono">http://127.0.0.1:11434</p>
+      <p class="mdl-s">模型在你自己的电脑上运行，地址只接受本机。</p>
+    </div>
+    <p class="mc-c">在「设置 → 析熙 → 连接模型」切换。本机模型需要你自己运行。</p>
+  </article>
+
+  <!-- 心愿 -->
+  <article class="mc glass" data-glass data-reveal="up" data-delay="3" data-wish>
+    <p class="mc-k">心愿，先聊清楚</p>
+    <div class="wish">
+      <p class="wish-t">想学吉他</p>
+      <button type="button" class="mini" data-clarify aria-expanded="false">聊清楚</button>
+    </div>
+    <dl class="wish-q">
+      <div><dt>为什么</dt><dd>想在毕业晚会上弹一首</dd></div>
+      <div><dt>第一小步</dt><dd>每周两次，每次 20 分钟</dd></div>
+      <div><dt>需要</dt><dd>借一把吉他</dd></div>
+    </dl>
+    <p class="mc-c">析熙在对话里帮你想清楚动机和第一小步，写回同一份心愿。你明确选择后，它才会变成余时里自动安排的目标。</p>
+  </article>
+</div>
+<p class="more-note">示意内容，数据为虚构。</p>
