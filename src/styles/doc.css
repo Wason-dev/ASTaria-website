@@ -9,7 +9,7 @@
   .doc-head { min-height: 0; padding-top: 38svh; }
   .doc-head > * { max-width: none; }
 }
-.doc-head .lead { color: var(--fg-2); max-width: 30em; }
+.doc-head .lead { color: var(--fg-2); max-width: 26em; }
 .doc-head { text-shadow: 0 2px 24px rgb(0 0 0 / 0.9), 0 0 3px rgb(0 0 0 / 0.6); }
 .doc-head .lead { margin-top: 20px; }
 .toc { display: flex; flex-wrap: wrap; gap: 10px 26px; margin-top: 36px; padding-top: 22px; border-top: 1px solid var(--line-2); }

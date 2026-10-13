@@ -1,6 +1,5 @@
 ---
-// 说明类页面：背后同样是实时黑洞。每页一个机位，标题处黑洞在右上方清晰可见，
-// 往下读时镜头缓缓拉远、压暗，正文落在一块玻璃阅读面上。
+// 说明类页面：背后同样是实时黑洞。黑洞偏右，标题在左。正文落在一块玻璃阅读面上。
 import Base from './Base.astro';
 import '../styles/doc.css';
 
@@ -30,17 +29,15 @@ const { title, description, page, eyebrow, lead, toc } = Astro.props;
       )}
     </header>
     <div class="doc-body wrap">
-      <div class="sheet glass" data-glass>
+      <div class="sheet glass">
         <slot />
       </div>
     </div>
   </article>
   <script>
     import { mountBlackHole } from '../scripts/blackhole';
-    import { mountGlass } from '../scripts/glass';
     const bh = document.getElementById('bh')!;
-    if (!mountBlackHole(bh, { span: 0.45 })) document.documentElement.classList.add('bh-off');
-    mountGlass();
+    if (!mountBlackHole(bh, { offset: true })) document.documentElement.classList.add('bh-off');
     // 复制按钮：复制目标元素的文本，图标换成对勾 1.6 秒。没有 JS 时文本本身仍可选中复制。
     document.querySelectorAll<HTMLButtonElement>('[data-copy]').forEach((b) => {
       b.hidden = false;

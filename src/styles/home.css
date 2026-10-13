@@ -1,173 +1,95 @@
-/* 首页。黑洞在背景里一路飞近；内容放在玻璃卡片上——就像 ASTaria 应用本身，
-   玻璃浮在黑洞上，背后的光被模糊、压暗，文字始终清楚。 */
+/* 首页。黑洞在穹顶里按自己的时钟慢慢转。内容是说明牌，安静地淡入。滚动是原生的。 */
 
-.num { color: var(--gold-2); font-size: 13px; letter-spacing: 0.1em; }
-.tag { display: flex; gap: 12px; justify-content: center; align-items: baseline; color: var(--fg-3); font-size: 13px; letter-spacing: 0.04em; }
+.num { color: var(--gold-2); font-size: 12px; letter-spacing: 0.18em; }
+.tag { display: flex; gap: 12px; justify-content: center; align-items: baseline; color: var(--fg-3); font-size: 12px; letter-spacing: 0.08em; }
 .tag .mono { color: var(--gold-2); }
 
-/* ---------- 开场：标题在上，黑洞在下方 ---------- */
+/* 开场：标题在黑洞下方，黑洞自己悬在穹顶 */
 .hero {
-  position: relative;
-  min-height: 100svh;
-  display: flex; flex-direction: column; align-items: center; text-align: center;
-  padding: clamp(96px, 14vh, 150px) var(--pad) 0;
+  min-height: 88svh;
+  display: flex; flex-direction: column; align-items: center; text-align: center; justify-content: flex-end;
+  padding: 0 var(--pad) 8vh;
 }
-/* 应用窗口：首屏底部露出上沿，滚动时升起，压在黑洞前面——像地平线上升起的一块玻璃 */
-.hero-app {
-  position: absolute;
-  left: 50%;
-  top: calc(100svh - 11svh);
-  width: min(86vw, 1100px);
-  padding: clamp(8px, 0.8vw, 12px);
-  transform: translate3d(-50%, calc(var(--rise, 0) * -46svh), 0) perspective(1600px) rotateX(calc((1 - var(--rise, 0)) * 16deg));
-  transform-origin: 50% 0;
-  opacity: calc(1 - max(var(--rise, 0) - 0.55, 0) / 0.45);
-  will-change: transform, opacity;
-}
-.hero-app .shot .frame { border-radius: clamp(14px, 1.4vw, 22px); }
 .word {
-  margin-top: 22px;
-  font-size: clamp(60px, 8vw, 128px);
-  line-height: 0.95;
-  letter-spacing: -0.045em;
-  font-weight: 650;
-  background: linear-gradient(180deg, #fffaf1 15%, #e6d3ad 100%);
+  margin-top: 18px;
+  font-size: clamp(52px, 6.6vw, 96px);
+  line-height: 0.96;
+  letter-spacing: -0.04em;
+  font-weight: 500;
+  background: linear-gradient(180deg, #fffaf1 20%, #e6d3ad 100%);
   -webkit-background-clip: text; background-clip: text; color: transparent;
 }
-.word.small { font-size: clamp(44px, 5.4vw, 88px); }
-.slogan { margin-top: 18px; font-size: clamp(20px, 1.8vw, 26px); font-weight: 500; letter-spacing: 0.12em; margin-right: -0.12em; color: var(--fg); }
-.cta { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; margin-top: 36px; }
-.meta { margin-top: 22px; color: var(--fg-4); font-size: 13px; }
-.meta a, .fine a { color: var(--fg-2); text-decoration: underline; text-underline-offset: 3px; text-decoration-color: rgb(255 255 255 / 0.25); }
+.word.small { font-size: clamp(36px, 4.4vw, 64px); font-weight: 400; }
+.slogan { margin-top: 14px; font-size: clamp(16px, 1.5vw, 20px); font-weight: 400; letter-spacing: 0.22em; padding-left: 0.22em; color: var(--fg-2); }
+.cta { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; margin-top: 28px; }
+.meta { margin-top: 18px; color: var(--fg-4); font-size: 13px; }
+.meta a, .fine a { color: var(--fg-2); text-decoration: underline; text-underline-offset: 3px; text-decoration-color: rgb(255 255 255 / 0.22); }
 .meta a:hover, .fine a:hover { color: var(--fg); }
 
-.intro-band { min-height: 70svh; margin-top: 52svh; display: flex; align-items: center; justify-content: center; padding: 0 var(--pad); }
-.intro { max-width: 22em; text-align: center; font-size: clamp(22px, 2.2vw, 34px); line-height: 1.55; font-weight: 500; color: var(--fg); text-shadow: 0 2px 30px rgb(0 0 0 / 0.9); }
+.peek { width: min(88vw, 1080px); margin: 0 auto 18vh; padding: 8px; border-radius: 28px; background: rgb(255 255 255 / 0.05); }
+.peek .frame { border-radius: 20px; }
 
-/* ---------- 功能展示：吸顶舞台，两片玻璃 ---------- */
-/* 玻璃：很透，背后的盘面清楚可见；靠强模糊和一层很淡的暗底保证文字可读 */
-.pane {
-  border-radius: clamp(22px, 2.2vw, 34px);
-  background: linear-gradient(160deg, rgb(255 255 255 / 0.09), rgb(255 255 255 / 0.02) 45%, rgb(0 0 0 / 0.12));
-  -webkit-backdrop-filter: blur(22px) saturate(180%) brightness(0.92);
-  backdrop-filter: blur(22px) saturate(180%) brightness(0.92);
+.intro {
+  max-width: 22em; margin: 0 auto 22vh; padding: 0 var(--pad);
+  text-align: center; font-size: clamp(20px, 2vw, 28px); line-height: 1.6; font-weight: 400; color: var(--fg);
 }
-.pane-img { padding: clamp(8px, 0.8vw, 12px); }
-.pane-img .shot .frame { border-radius: clamp(14px, 1.4vw, 22px); }
-.pane-text { padding: clamp(28px, 2.8vw, 44px); text-shadow: 0 1px 18px rgb(0 0 0 / 0.55); }
 
-.slide { display: grid; gap: 24px; padding: 10vh var(--pad); }
-.title { margin-top: 16px; font-size: clamp(30px, 3vw, 46px); line-height: 1.15; letter-spacing: -0.02em; font-weight: 600; }
-.body { margin-top: 18px; color: var(--fg-2); font-size: 16.5px; line-height: 1.75; }
-.facts { display: flex; flex-wrap: wrap; gap: 0; margin: 26px 0 0; }
-.facts div { padding: 2px 20px 2px 0; margin-right: 20px; border-right: 1px solid rgb(255 255 255 / 0.12); display: grid; gap: 2px; }
+/* 章节：截图一片玻璃，说明牌另一片，错位叠放。不吸顶、不跟手、不翻转。 */
+.ch {
+  display: grid;
+  grid-template-columns: minmax(0, 1.35fr) minmax(240px, 0.7fr);
+  align-items: end;
+  gap: 0;
+  width: min(100% - var(--pad) * 2, 1180px);
+  margin: 0 auto 22vh;
+}
+.ch.flip { grid-template-columns: minmax(240px, 0.7fr) minmax(0, 1.35fr); }
+.ch.flip .pane-img { order: 2; }
+
+.pane-img { padding: 8px; border-radius: 26px; background: rgb(255 255 255 / 0.05); }
+.pane-img .frame { border-radius: 18px; }
+.pane-text {
+  margin: 0 0 -4% -8%;
+  padding: clamp(24px, 2.4vw, 36px);
+  border-radius: 22px;
+  background: rgb(12 12 14 / 0.42);
+  -webkit-backdrop-filter: blur(18px) saturate(140%);
+  backdrop-filter: blur(18px) saturate(140%);
+}
+.ch.flip .pane-text { margin: 0 -8% -4% 0; }
+
+.title { margin-top: 12px; font-size: clamp(26px, 2.6vw, 38px); line-height: 1.2; letter-spacing: -0.018em; font-weight: 500; }
+.body { margin-top: 14px; color: var(--fg-2); font-size: 16px; line-height: 1.75; }
+.facts { display: flex; flex-wrap: wrap; gap: 0; margin: 22px 0 0; }
+.facts div { padding: 2px 18px 2px 0; margin-right: 18px; border-right: 1px solid rgb(255 255 255 / 0.1); display: grid; gap: 2px; }
 .facts div:last-child { border-right: 0; margin-right: 0; padding-right: 0; }
-.facts dt { color: var(--fg-3); font-size: 12px; }
-.facts dd { margin: 0; color: var(--fg); font-size: 16px; }
-.rail { display: none; }
+.facts dt { color: var(--fg-4); font-size: 11px; letter-spacing: 0.08em; }
+.facts dd { margin: 0; color: var(--fg); font-size: 15px; }
 
-/* 吸顶版（有 JS、宽屏）：每章占一屏的滚动距离，舞台固定在视口里 */
-.show.pinned { height: calc(var(--n) * 100svh + 60svh); }
-.show.pinned .stage { position: sticky; top: 0; height: 100svh; overflow: hidden; }
-.show.pinned .slide { position: absolute; inset: 0; padding: 0; display: block; pointer-events: none; }
-.show.pinned .slide.is-on { pointer-events: auto; }
-
-/* 两片玻璃错位叠放：截图大、靠一侧；文案小、压在截图另一侧的边上 */
-.show.pinned .pane { position: absolute; }
-.show.pinned .pane-img { left: 6vw; top: 50%; width: min(58vw, 960px); }
-.show.pinned .pane-text { right: 7vw; top: 50%; width: min(30vw, 440px); }
-.show.pinned .flip .pane-img { left: auto; right: 6vw; }
-.show.pinned .flip .pane-text { right: auto; left: 7vw; }
-
-/* 进场 / 停留 / 退场：完全由滚动位置驱动（scripts/showcase.ts 每帧写入 --e 进场、--x 退场），
-   没有 transition、没有延迟，手停画面就停。相邻两章交叉过渡，中间没有空档。
-   只用 transform 和 opacity，不动 filter / clip-path，快速滑动也不掉帧。 */
-.show.pinned .slide { --side: -1; --e: 0; --x: 0; --u: 0; perspective: 1800px; }
-.show.pinned .slide.flip { --side: 1; }
-.show.pinned .pane { will-change: transform, opacity; }
-.show.pinned .pane-img {
-  opacity: calc(var(--e) * (1 - var(--x)));
-  transform:
-    translate3d(
-      calc(var(--side) * (1 - var(--e)) * 12vw - var(--side) * var(--x) * 9vw + var(--mx) * -18px),
-      calc(-50% - var(--x) * 6vh + (0.5 - var(--u)) * 30px + var(--my) * -14px), 0)
-    rotateY(calc(var(--side) * ((1 - var(--e)) * -14deg + var(--x) * 10deg)))
-    scale(calc(0.9 + 0.1 * var(--e) - 0.08 * var(--x)));
-}
-.show.pinned .pane-text {
-  opacity: calc(var(--e) * (1 - var(--x)));
-  transform:
-    translate3d(
-      calc(var(--side) * (1 - var(--e)) * -8vw + var(--side) * var(--x) * 6vw + var(--mx) * 30px),
-      calc(-50% - var(--x) * 8vh + (0.5 - var(--u)) * 56px + var(--my) * 22px), 0)
-    scale(calc(0.95 + 0.05 * var(--e)));
-}
-
-/* 背景里的大号章节序号：只有描边 */
-.show.pinned .slide::before {
-  content: attr(data-n);
-  position: absolute;
-  top: 50%;
-  right: 4vw;
-  font-family: var(--mono);
-  font-size: clamp(160px, 22vw, 360px);
-  line-height: 1;
-  color: transparent;
-  -webkit-text-stroke: 1px rgb(236 211 164 / 0.22);
-  transform: translate3d(0, calc(-50% + (0.5 - var(--u)) * 80px), 0);
-  opacity: calc(var(--e) * (1 - var(--x)));
-  pointer-events: none;
-}
-.show.pinned .slide.flip::before { right: auto; left: 4vw; }
-
-/* 文案逐行出现：同样跟着滚动走，每行晚一点点 */
-.show.pinned .line {
-  opacity: clamp(0, (var(--e) - var(--d) * 0.12) * 1.8, 1);
-  transform: translate3d(0, calc((1 - clamp(0, (var(--e) - var(--d) * 0.12) * 1.8, 1)) * 16px), 0);
-}
-
-/* 章节导轨 */
-.show.pinned .rail { display: grid; gap: 14px; position: absolute; right: 26px; top: 50%; transform: translateY(-50%); z-index: 3; }
-.rail button { display: flex; align-items: center; gap: 10px; justify-content: flex-end; padding: 2px 0; border: 0; background: none; color: var(--fg-4); font: inherit; font-size: 12px; cursor: pointer; transition: color 300ms var(--ease); }
-.rail .rk { opacity: 0; transform: translateX(6px); transition: opacity 300ms var(--ease), transform 300ms var(--ease); }
-.rail button:hover .rk, .rail button:focus-visible .rk, .rail button[aria-current='step'] .rk { opacity: 1; transform: none; }
-.rail button[aria-current='step'] { color: var(--gold-2); }
-.rail-bar { position: absolute; right: -12px; top: 0; bottom: 0; width: 1px; background: rgb(255 255 255 / 0.12); }
-.rail-bar i { position: absolute; inset: 0 0 auto 0; height: calc(var(--p) * 100%); background: var(--gold-2); }
-
-.ch.center { min-height: 100svh; display: flex; align-items: center; padding: 10vh var(--pad); }
-.card.narrow { width: min(100%, 760px); margin: 0 auto; padding: clamp(28px, 3vw, 48px); border-radius: clamp(24px, 2.6vw, 38px); }
-
+.vows-sec { width: min(100% - var(--pad) * 2, 640px); margin: 0 auto 18vh; }
 .vows { list-style: none; margin: 28px 0 0; padding: 0; }
-.vows li { padding: 16px 0; border-top: 1px solid rgb(255 255 255 / 0.1); color: var(--fg-2); font-size: 16px; line-height: 1.65; }
+.vows li { padding: 16px 0; border-top: 1px solid rgb(255 255 255 / 0.1); color: var(--fg-2); font-size: 16px; line-height: 1.7; }
 .vows li:last-child { border-bottom: 1px solid rgb(255 255 255 / 0.1); }
-.card .more { margin-top: 26px; }
+.vows-sec .more { margin-top: 28px; }
 
-/* ---------- 越过视界 ---------- */
-/* 俯冲：一行字定在画面中央，阴影在它身后长大，把整屏吞没 */
-.dive { height: 150svh; }
-.dive-line {
+/* 越过视界：镜头按时间推进阴影。字在黑暗里显现。 */
+.inside { min-height: 220svh; }
+.inside-line {
   position: sticky; top: calc(50svh - 0.6em); margin: 0; text-align: center;
-  font-size: clamp(30px, 3.6vw, 56px); font-weight: 300; letter-spacing: 0.32em; padding-left: 0.32em;
-  color: rgb(245 242 236 / 0.92); text-shadow: 0 2px 40px rgb(0 0 0 / 0.9);
+  font-size: clamp(22px, 2.4vw, 32px); font-weight: 300; letter-spacing: 0.36em; padding-left: 0.36em;
+  color: rgb(245 242 236 / 0.9);
 }
-.void { height: 110svh; display: flex; align-items: center; justify-content: center; }
-.void-line { opacity: 0; color: rgb(245 242 236 / 0.85); font-size: clamp(18px, 1.6vw, 24px); letter-spacing: 0.6em; margin-right: -0.6em; font-weight: 300; }
 
-/* ---------- 收尾 ---------- */
-.finale { min-height: 100svh; display: flex; flex-direction: column; align-items: center; text-align: center; padding: clamp(110px, 17vh, 170px) var(--pad) 10vh; }
-.plats { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px 28px; margin: 36px 0 0; padding: 0; list-style: none; }
+.finale { min-height: 100svh; display: flex; flex-direction: column; align-items: center; text-align: center; padding: 28vh var(--pad) 12vh; }
+.plats { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px 28px; margin: 32px 0 0; padding: 0; list-style: none; }
 .plats li { display: flex; align-items: center; gap: 10px; }
-.pn { color: var(--fg); font-size: 15px; font-weight: 600; }
+.pn { color: var(--fg); font-size: 15px; font-weight: 500; }
 .finale .fine { margin-top: 22px; max-width: 46em; }
 
 @media (max-width: 899px) {
-  .slide { padding: 6vh var(--pad); }
-  .pane-text { padding: 24px; }
-  .facts div { padding-right: 14px; margin-right: 14px; }
-  /* 窄屏：首屏窗口露出更少，黑洞不被盖住 */
-  .hero-app { top: calc(100svh - 8svh); width: 92vw; }
-  .intro-band { margin-top: 40svh; }
-  .dive-line { letter-spacing: 0.18em; padding-left: 0.18em; font-size: clamp(26px, 8vw, 40px); }
-  .void-line { letter-spacing: 0.3em; margin-right: -0.3em; }
+  .hero { padding-bottom: 8vh; }
+  .ch, .ch.flip { grid-template-columns: 1fr; }
+  .ch.flip .pane-img { order: 0; }
+  .pane-text, .ch.flip .pane-text { margin: -18px 12px 0; }
+  .inside-line { letter-spacing: 0.18em; padding-left: 0.18em; }
 }
