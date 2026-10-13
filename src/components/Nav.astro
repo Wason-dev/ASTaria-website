@@ -1,6 +1,6 @@
 ---
 import Icon from './Icon.astro';
-import { release } from '../data/release';
+import { repoUrl } from '../data/release';
 
 interface Props { current: string }
 const { current } = Astro.props;
@@ -21,12 +21,13 @@ const links = [
         {links.map((l) => <li><a href={l.href} aria-current={l.id === current ? 'page' : undefined}>{l.label}</a></li>)}
       </ul>
     </nav>
-    <a class="btn btn-primary btn-sm get" href="/download/">下载 {release.displayName}</a>
+    <a class="gh" href={repoUrl} target="_blank" rel="noopener noreferrer" aria-label="GitHub 仓库（新窗口打开）"><Icon name="github" size={18} /></a>
     <details class="menu">
       <summary aria-label="打开导航"><Icon name="menu" size={20} /></summary>
       <nav class="sheet" aria-label="移动导航">
         <a href="/" aria-current={current === 'home' ? 'page' : undefined}>概览</a>
         {links.map((l) => <a href={l.href} aria-current={l.id === current ? 'page' : undefined}>{l.label}</a>)}
+        <a href={repoUrl} target="_blank" rel="noopener noreferrer">GitHub<span class="sr-only">（新窗口打开）</span></a>
       </nav>
     </details>
   </div>
@@ -48,7 +49,8 @@ const links = [
   .links { display: flex; gap: 28px; margin: 0; padding: 0; list-style: none; }
   .links a { font-size: 13px; color: var(--fg-2); transition: color 200ms var(--ease); }
   .links a:hover, .links a[aria-current='page'] { color: var(--fg); }
-  .get { font-size: 13px; height: 30px; padding: 0 14px; }
+  .gh { display: grid; place-items: center; width: 32px; height: 32px; border-radius: 50%; color: var(--fg-2); transition: color 200ms var(--ease), background-color 200ms var(--ease); }
+  .gh:hover { color: var(--fg); background: rgb(255 255 255 / 0.08); }
   .menu { display: none; position: relative; }
   .menu summary { display: grid; place-items: center; width: 40px; height: 40px; list-style: none; cursor: pointer; color: var(--fg-2); }
   .menu summary::-webkit-details-marker { display: none; }

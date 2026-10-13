@@ -9,15 +9,22 @@
 /* ---------- 开场：飞跃视角，左侧两块亮玻璃 ----------
    --hp（0→1）由 scripts/blackhole.ts 按滚动写入：玻璃随之淡出、向左退开，镜头同时拉回全景。 */
 .hero { min-height: 100svh; display: flex; align-items: center; padding-top: 72px; padding-bottom: 6vh; }
-.hero-panes {
-  display: grid; gap: 14px; width: min(100%, 500px);
+/* 淡出写在每块玻璃自己身上：父元素一旦带 opacity / will-change，就会成为 backdrop root，
+   里面玻璃的 backdrop-filter 只能模糊父元素本身（透明），看不到背后的黑洞 */
+.hero-panes { display: grid; gap: 14px; width: min(100%, 500px); }
+.hp-pane {
   opacity: calc(1 - var(--hp, 0) * 1.6);
-  transform: translate3d(calc(var(--hp, 0) * -60px), calc(var(--hp, 0) * -30px), 0) scale(calc(1 - var(--hp, 0) * 0.04));
-  transform-origin: 0 50%;
-  will-change: transform, opacity;
+  transform: translate3d(calc(var(--hp, 0) * -60px), calc(var(--hp, 0) * -30px), 0);
 }
+.hp-pane.small { transform: translate3d(calc(var(--hp, 0) * -80px), calc(var(--hp, 0) * -20px), 0); }
 /* 亮玻璃（.glass，见 base.css）：开场的盘面已压低曝光，玻璃提亮后字仍清楚 */
-.hp-pane { padding: clamp(26px, 2.6vw, 38px); border-radius: 28px; text-shadow: 0 1px 18px rgb(0 0 0 / 0.5); }
+/* 开场背后是整片亮盘面，玻璃比别处压暗一些：模糊照旧，提亮去掉、再垫一层很淡的暗底 */
+.hp-pane {
+  padding: clamp(26px, 2.6vw, 38px); border-radius: 28px; text-shadow: 0 1px 18px rgb(0 0 0 / 0.5);
+  background: linear-gradient(180deg, rgb(255 255 255 / 0.09), rgb(255 255 255 / 0.02) 42%, rgb(255 255 255 / 0.04)), rgb(12 11 10 / 0.28);
+  -webkit-backdrop-filter: blur(28px) saturate(160%) brightness(0.78);
+  backdrop-filter: blur(28px) saturate(160%) brightness(0.78);
+}
 .hp-pane.small { padding: 22px clamp(22px, 2.4vw, 30px); border-radius: 24px; }
 .hp-pane.small .cta { margin-top: 0; }
 .hp-pane.small .meta { margin-top: 16px; color: var(--fg-2); }
@@ -157,21 +164,29 @@
 .spec-v { margin-top: 10px; font-size: clamp(30px, 3vw, 44px); color: var(--fg); letter-spacing: -0.01em; }
 .spec-n { margin-top: 10px; color: var(--fg-4); font-size: 13px; line-height: 1.6; }
 
-/* ---------- 越过视界：约三屏，滑完约 2.4 屏才全黑 ---------- */
+/* ---------- 越过视界 + 下载：一整块居中定在画面中央。阴影把字包住时字才显现；
+   画面全黑后（--dv → 1）下载在字下方浮现。这一段结束时整块随页面离开，下面直接是页脚。 ---------- */
 .dive { height: 300svh; }
-.dive-line {
-  position: sticky; top: calc(50svh - 0.6em); margin: 0; text-align: center;
-  font-size: clamp(22px, 2.4vw, 32px); font-weight: 300; letter-spacing: 0.36em; padding-left: 0.36em;
-  color: rgb(245 242 236 / 0.9);
+.dive-stack {
+  position: sticky; top: calc(50svh - 150px);
+  display: grid; justify-items: center; gap: 36px; padding: 0 var(--pad); text-align: center;
 }
-
-/* ---------- 下载：同一网格左栏，在黑暗里 ---------- */
-.finale { max-width: calc(var(--wrap) + var(--pad) * 2); margin: 0 auto; padding: 18vh var(--pad) 14vh; }
-.finale > * { max-width: 640px; }
-.plats { display: flex; flex-wrap: wrap; gap: 10px 28px; margin: 32px 0 0; padding: 0; list-style: none; }
+.dive-line {
+  margin: 0; font-size: clamp(24px, 2.6vw, 36px); font-weight: 300; letter-spacing: 0.36em; padding-left: 0.36em;
+  color: rgb(245 242 236 / 0.92);
+}
+.js .dive-cta {
+  opacity: clamp(0, (var(--dv, 0) - 0.82) * 6, 1);
+  transform: translate3d(0, calc((1 - clamp(0, (var(--dv, 0) - 0.82) * 6, 1)) * 18px), 0);
+  visibility: hidden;
+}
+.js .dive.dark .dive-cta { visibility: visible; }
+html.bh-off .dive-cta { opacity: 1 !important; transform: none !important; visibility: visible !important; }
+.dive-cta .cta { justify-content: center; margin-top: 0; }
+.plats { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px 28px; margin: 28px 0 0; padding: 0; list-style: none; }
 .plats li { display: flex; align-items: center; gap: 10px; }
 .pn { color: var(--fg); font-size: 15px; font-weight: 500; }
-.finale .fine { margin-top: 22px; }
+.dive-cta .fine { margin: 18px auto 0; max-width: 40em; }
 
 /* ---------- 窄屏：黑洞在上，文字在下 ---------- */
 @media (max-width: 899px) {
@@ -183,4 +198,5 @@
   .xx-win { height: 460px; }
   .xx, .chat-demo:hover .xx { transform: none; }
   .dive-line { letter-spacing: 0.18em; padding-left: 0.18em; }
+  .dive-stack { top: calc(50svh - 190px); }
 }

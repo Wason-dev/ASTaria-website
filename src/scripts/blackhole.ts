@@ -7,7 +7,7 @@
 //   结尾 [data-cam="dive"] 约三屏：推进程度由这一段的滚动位置决定，加一层一阶平滑，不会过冲。
 import { VERT, FRAG } from './blackhole-shader';
 
-interface Pose { dist: number; incl: number; yaw: number; fov: number; sx: number; sy: number; expo: number }
+interface Pose { dist: number; incl: number; yaw: number; fov: number; sx: number; sy: number; expo: number; roll?: number }
 
 const DIST = 32;
 const DISC_SPAN = 4.2; // 盘面可见的半宽 ≈ 阴影半径 × 4.2（含外圈淡光）
@@ -60,7 +60,7 @@ export function mountBlackHole(host: HTMLElement) {
     gl.uniform1f(U.uFov, p.fov);
     gl.uniform1f(U.uExpo, p.expo);
     gl.uniform2f(U.uShift, p.sx, p.sy);
-    gl.uniform1f(U.uRoll, 0);
+    gl.uniform1f(U.uRoll, p.roll ?? 0);
     gl.uniform1f(U.uStars, 1);
     gl.drawArrays(gl.TRIANGLES, 0, 3);
   };
@@ -86,8 +86,8 @@ export function mountBlackHole(host: HTMLElement) {
   const slotEl = document.querySelector<HTMLElement>('[data-hole]');
   let slot = { cx: 0, cy: 0, r: 0 };
   const measure = () => {
-    // 没有槽位时（首页）：全景居中，阴影约屏高的 11%
-    if (!slotEl) { slot = { cx: W * 0.5, cy: H * 0.46, r: H * 0.11 }; return; }
+    // 没有槽位时（首页）：与应用首页「全景」同一构图——黑洞在横向约 65% 处，阴影约屏高的 12%
+    if (!slotEl) { const portrait = W / H < 0.95; slot = { cx: W * (portrait ? 0.5 : 0.65), cy: H * (portrait ? 0.36 : 0.49), r: H * (portrait ? 0.1 : 0.12) }; return; }
     const b = slotEl.getBoundingClientRect();
     const top = b.top + scrollY;
     slot = { cx: b.left + b.width / 2, cy: top + b.height / 2, r: Math.min(b.width / 2 / DISC_SPAN, b.height / 2 / 2.6) };
@@ -111,22 +111,22 @@ export function mountBlackHole(host: HTMLElement) {
       sx: (slot.cx - W / 2) / H,
       sy: (H / 2 - slot.cy) / H,
       expo: 1.05,
+      roll: slotEl ? 0 : 0.18,
     };
   };
-  // 飞跃：离黑洞很近、几乎贴着盘面，阴影很大、偏在右上，盘面的光带铺满左边和下方
+  // 飞跃：照应用首页展开聊天时的「星际」机位——距离不变，换长焦：阴影约占屏高一半，
+  // 中心几乎贴着右边缘，镜头略微横滚，几乎平视盘面，光带从左边和下方扫过。
   const fly = (from: Pose): Pose => {
     const a = W / H, portrait = a < 0.95;
-    // 近处盘面很亮，曝光压低，才能看出暖色的层次而不是一片白；仰角略抬，光带不至于铺满整屏
-    const dist = 11;
     return {
-      dist, fov: shadowTan(dist) / (portrait ? 0.28 : 0.4), incl: 0.17, yaw: from.yaw,
-      sx: portrait ? 0.12 : a * 0.3, sy: portrait ? 0.24 : 0.16, expo: 0.62,
+      dist: from.dist, fov: shadowTan(from.dist) / (portrait ? 0.3 : 0.52), incl: 0.1, yaw: from.yaw,
+      sx: portrait ? 0.18 : a * 0.48, sy: portrait ? 0.22 : 0.0, expo: 0.9, roll: 0.12,
     };
   };
   const inside = (from: Pose): Pose => {
     const dist = 3.2;
     const vf = (shadowTan(dist) / Math.hypot(W / H / 2, 0.5)) * 0.85;
-    return { dist, fov: vf, incl: 1.36, yaw: from.yaw, sx: 0, sy: 0, expo: 1.05 };
+    return { dist, fov: vf, incl: 1.36, yaw: from.yaw, sx: 0, sy: 0, expo: 1.05, roll: 0 };
   };
 
   const frame = (now: number) => {
@@ -142,6 +142,10 @@ export function mountBlackHole(host: HTMLElement) {
       want = c01((H * 0.9 - b.top) / (b.height * 0.8));
     }
     dive = still ? want : dive + (want - dive) * (1 - Math.exp(-DIVE_K * dt));
+    if (diveEl) {
+      diveEl.style.setProperty('--dv', dive.toFixed(3)); // 结尾的下载随全黑程度显现
+      diveEl.classList.toggle('dark', dive > 0.84);      // 显现之前不可点击
+    }
     // 内容区压暗：内容区顶部到屏幕下方 10% 时开始、约 0.8 屏压下去（首页此时已拉回全景）；
     // 越过视界那一段进入屏幕时才开始、用 1.4 屏慢慢恢复
     if (dimEl) {
@@ -152,7 +156,8 @@ export function mountBlackHole(host: HTMLElement) {
       const q = Math.round(dim * 100) / 100;
       if (q !== dimShown) {
         dimShown = q;
-        canvas.style.filter = q > 0 ? `brightness(${(1 - 0.55 * q).toFixed(2)}) blur(${(4 * q).toFixed(1)}px)` : '';
+        canvas.style.filter = q > 0 ? `brightness(${(1 - 0.5 * q).toFixed(2)}) blur(${(1.2 * q).toFixed(1)}px)` : '';
+        host.style.setProperty('--dim', String(q));
       }
     }
     // 拉回全景：滑过约 0.9 屏完成。一阶平滑，不会过冲。进度写进 --hp，开场玻璃板据此淡出
@@ -166,7 +171,7 @@ export function mountBlackHole(host: HTMLElement) {
     let s = pano;
     if (flyEl && hp < 1) {
       const f = fly(pano), k = hp * hp * (3 - 2 * hp);
-      s = { dist: logLerp(f.dist, pano.dist, k), fov: logLerp(f.fov, pano.fov, k), incl: mix(f.incl, pano.incl, k), yaw: pano.yaw, sx: mix(f.sx, pano.sx, k), sy: mix(f.sy, pano.sy, k), expo: mix(f.expo, pano.expo, k) };
+      s = { dist: logLerp(f.dist, pano.dist, k), fov: logLerp(f.fov, pano.fov, k), incl: mix(f.incl, pano.incl, k), yaw: pano.yaw, sx: mix(f.sx, pano.sx, k), sy: mix(f.sy, pano.sy, k), expo: mix(f.expo, pano.expo, k), roll: mix(f.roll ?? 0, pano.roll ?? 0, k) };
     }
     const i = inside(s);
     const u = dive * dive * (3 - 2 * dive);
@@ -177,6 +182,7 @@ export function mountBlackHole(host: HTMLElement) {
       yaw: s.yaw,
       sx: mix(s.sx, i.sx, u),
       sy: mix(s.sy, i.sy, u),
+      roll: mix(s.roll ?? 0, 0, u),
       expo: s.expo * (still ? 1 : 1 - Math.pow(1 - Math.min((now - t0) / 2800, 1), 3)),
     };
     draw(p, still ? 12 : now / 1000, canvas.width, canvas.height);
