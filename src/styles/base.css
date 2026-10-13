@@ -79,7 +79,7 @@ code, pre, .mono { font-family: var(--mono); font-variant-numeric: tabular-nums;
 
 /* ---------- 玻璃 ----------
    厚玻璃：背景被强模糊与提亮，边缘有一圈折射亮边（上亮下暗），
-   表面有一道固定的高光。 */
+   表面有一道跟随指针的高光（--gx/--gy 由 scripts/glass.ts 写入）。 */
 .glass {
   position: relative;
   isolation: isolate;

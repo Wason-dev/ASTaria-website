@@ -122,7 +122,7 @@ const cards = [
     <h2 id="c06" class="headline" data-reveal="lines"><span class="ln"><span>你的数据</span></span><span class="ln"><span>不越过视界</span></span></h2>
     <div class="data-grid">
       <p class="data-body" data-reveal="up">事项、日程、对话、图片和记忆，<b>保存在你自己的电脑上</b>。API Key 由钥匙串或 DPAPI 保护，<b>不同步，也不进备份</b>。联网默认关闭，本站没有统计脚本。<a class="more" href="/security/">安全与隐私的完整说明<Icon name="chevron-right" /></a></p>
-      <div class="spec" data-reveal="up" data-delay="1">
+      <div class="spec glass" data-glass data-reveal="up" data-delay="1">
         <p class="spec-k">同步目录里只有加密的操作文件</p>
         <p class="spec-v mono">AES-256-GCM</p>
         <p class="spec-n">共享文件夹本身不是端到端加密存储。</p>
@@ -152,8 +152,10 @@ const cards = [
     import { mountBlackHole } from '../scripts/blackhole';
     import { mountHome } from '../scripts/home';
     import { mountXixiDemo } from '../scripts/xixi-demo';
+    import { mountGlass } from '../scripts/glass';
     if (!mountBlackHole(document.getElementById('bh')!)) document.documentElement.classList.add('bh-off');
     mountHome();
     mountXixiDemo();
+    mountGlass();
   </script>
 </Base>
