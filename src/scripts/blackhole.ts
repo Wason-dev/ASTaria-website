@@ -228,10 +228,14 @@ ${frag}`));
     return { dist, fov: vf, incl: 1.36, yaw: from.yaw, sx: 0, sy: 0, expo: 1.05, roll: 0 };
   };
 
+  // 页面上有较重的动画在跑时（例如卡片展开），暂停渲染，画面停在当前这一帧，把 GPU 让出来
+  let busy = 0;
+  addEventListener('astaria:busy', (e) => { busy = Math.max(0, busy + ((e as CustomEvent<number>).detail || 0)); });
   const frame = (now: number) => {
     requestAnimationFrame(frame);
     const dt = Math.min((now - last) / 1000, 0.05);
     last = now;
+    if (busy > 0) return;
     const c01 = (v: number) => Math.min(Math.max(v, 0), 1);
     // 推进进度：这一段顶部到屏幕下方 10% 时开始，滚过这一段 80% 的高度时全黑
     let want = 0, diveTop = Infinity;

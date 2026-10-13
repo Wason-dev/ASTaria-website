@@ -52,32 +52,38 @@ const { title, description, page, eyebrow, lead, toc } = Astro.props;
     cards.forEach((c) => { c.classList.add('glass', 'card'); c.dataset.glass = ''; });
     if (!mountBlackHole(bh)) document.documentElement.classList.add('bh-off');
     mountGlass();
-    // 问答卡片展开 / 收起：自己做高度动画（Safari 不支持 details 的 CSS 高度过渡）
+    // 问答卡片展开 / 收起：自己做高度动画（Safari 不支持 details 的 CSS 高度过渡）。
+    // 只动、只裁卡片里的内容区，不裁卡片本身：更新记录左边的时间线画在卡片外面，裁卡片会让它在动画里消失
     const still = matchMedia('(prefers-reduced-motion: reduce)').matches;
     document.querySelectorAll<HTMLDetailsElement>('details.qa').forEach((d) => {
       const sum = d.querySelector('summary')!;
+      const body = d.querySelector<HTMLElement>(':scope > div');
       d.classList.add('anim');
       if (d.open) d.classList.add('shown');
       let a: Animation | null = null;
       sum.addEventListener('click', (e) => {
-        if (still) { requestAnimationFrame(() => d.classList.toggle('shown', d.open)); return; }
+        if (still || !body) { requestAnimationFrame(() => d.classList.toggle('shown', d.open)); return; }
         e.preventDefault();
-        const from = d.offsetHeight;
         a?.cancel();
+        const pad = getComputedStyle(body).paddingBottom;
+        // 动画期间暂停背景黑洞的渲染（见 blackhole.ts），每次开始、结束各发一次，保证成对
+        let held = true;
+        dispatchEvent(new CustomEvent('astaria:busy', { detail: 1 }));
+        const done = () => { body.style.overflow = ''; a = null; if (held) { held = false; dispatchEvent(new CustomEvent('astaria:busy', { detail: -1 })); } };
+        body.style.overflow = 'hidden';
         if (!d.open) {
           d.open = true;
-          const to = d.offsetHeight;
+          const h = body.offsetHeight;
           requestAnimationFrame(() => d.classList.add('shown'));
-          a = d.animate({ height: [`${from}px`, `${to}px`] }, { duration: 520, easing: 'cubic-bezier(0.16, 1, 0.3, 1)' });
+          a = body.animate({ height: ['0px', `${h}px`], paddingBottom: ['0px', pad] }, { duration: 520, easing: 'cubic-bezier(0.16, 1, 0.3, 1)' });
+          a.onfinish = done;
         } else {
           d.classList.remove('shown');
-          const to = sum.offsetHeight;
-          a = d.animate({ height: [`${from}px`, `${to}px`] }, { duration: 380, easing: 'cubic-bezier(0.4, 0, 0.2, 1)' });
-          a.onfinish = () => { d.open = false; };
+          const h = body.offsetHeight;
+          a = body.animate({ height: [`${h}px`, '0px'], paddingBottom: [pad, '0px'] }, { duration: 380, easing: 'cubic-bezier(0.4, 0, 0.2, 1)' });
+          a.onfinish = () => { d.open = false; done(); };
         }
-        d.style.overflow = 'hidden';
-        a.addEventListener('finish', () => { d.style.overflow = ''; a = null; });
-        a.addEventListener('cancel', () => { d.style.overflow = ''; });
+        a.oncancel = done;
       });
     });
     // 卡片滚到时浮现
