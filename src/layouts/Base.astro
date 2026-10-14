@@ -21,7 +21,8 @@ const og = new URL('/og.jpg', Astro.site).href;
     <meta name="theme-color" content="#000000" />
     <meta name="color-scheme" content="dark" />
     <link rel="canonical" href={canonical} />
-    <!-- 标签页图标：应用图标（只用作图标，页面里不放）。favicon.ico 放第一个：Safari 常常只认它 -->
+    <!-- 标签页图标：透明底的银色三瓣（不是方块，Safari 不会给它加描边）。favicon.ico 放第一个：Safari 常常只认它。
+         加到 iPhone 主屏幕用带深灰方块底的应用图标。这些只用作图标，页面里不放 -->
     <link rel="icon" href="/favicon.ico" sizes="16x16 32x32 48x48" />
     <link rel="icon" href="/favicon-32.png" type="image/png" sizes="32x32" />
     <link rel="icon" href="/favicon-192.png" type="image/png" sizes="192x192" />
