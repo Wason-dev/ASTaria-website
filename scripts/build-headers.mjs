@@ -57,6 +57,7 @@ const rules = [
   ['/fonts/*', ['Cache-Control: public, max-age=2592000']],
   // 分享图、图标会换但名字不变，缓存 1 天
   ['/og.jpg', ['Cache-Control: public, max-age=86400']],
+  ['/favicon.ico', ['Cache-Control: public, max-age=86400']],
   ['/favicon-32.png', ['Cache-Control: public, max-age=86400']],
   ['/favicon-192.png', ['Cache-Control: public, max-age=86400']],
   ['/apple-touch-icon.png', ['Cache-Control: public, max-age=86400']],
