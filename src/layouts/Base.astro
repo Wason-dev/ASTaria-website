@@ -21,7 +21,10 @@ const og = new URL('/og.jpg', Astro.site).href;
     <meta name="theme-color" content="#000000" />
     <meta name="color-scheme" content="dark" />
     <link rel="canonical" href={canonical} />
-    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <!-- 标签页图标：应用图标（只用作图标，页面里不放） -->
+    <link rel="icon" href="/favicon-32.png" type="image/png" sizes="32x32" />
+    <link rel="icon" href="/favicon-192.png" type="image/png" sizes="192x192" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <meta property="og:type" content="website" />
     <meta property="og:locale" content="zh_CN" />
     <meta property="og:site_name" content="ASTaria" />

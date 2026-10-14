@@ -5,7 +5,7 @@
   "version": "0.0.0",
   "scripts": {
     "dev": "astro dev",
-    "build": "node scripts/verify-claims.mjs --src && astro build && node scripts/verify-claims.mjs --dist",
+    "build": "node scripts/verify-claims.mjs --src && astro build && node scripts/build-headers.mjs && node scripts/verify-claims.mjs --dist",
     "preview": "astro preview",
     "verify:release": "node scripts/verify-release.mjs",
     "verify:claims": "node scripts/verify-claims.mjs --src --dist",
