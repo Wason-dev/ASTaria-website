@@ -11,7 +11,7 @@
 .hero { min-height: 100svh; display: flex; align-items: center; padding: 72px clamp(20px, 2.6vw, 40px) 6vh; }
 /* 淡出写在每块玻璃自己身上：父元素一旦带 opacity / will-change，就会成为 backdrop root，
    里面玻璃的 backdrop-filter 只能模糊父元素本身（透明），看不到背后的黑洞 */
-.hero-panes { display: grid; gap: 14px; width: min(100%, 500px); }
+.hero-panes { display: grid; gap: 14px; width: min(100%, 560px); }
 .hp-pane {
   opacity: calc(1 - var(--hp, 0) * 1.6);
   transform: translate3d(calc(var(--hp, 0) * -60px), calc(var(--hp, 0) * -30px), 0);
@@ -45,9 +45,11 @@
   -webkit-background-clip: text; background-clip: text; color: transparent;
 }
 .word.small { font-size: clamp(40px, 4.8vw, 72px); font-weight: 400; }
-.slogan { margin-top: 16px; font-size: clamp(17px, 1.6vw, 22px); font-weight: 400; letter-spacing: 0.22em; color: var(--fg-2); }
+.slogan { margin-top: 16px; font-size: clamp(17px, 1.6vw, 22px); font-weight: 400; letter-spacing: 0.22em; color: var(--fg); }
 /* 口号下面的一句大白话：第一次来的人先看懂这是做什么的 */
-.intro { margin-top: 22px; font-size: clamp(15px, 1.25vw, 17px); line-height: 1.7; color: var(--fg); }
+/* 按短语换行：宽度够就一行排完，不够才在短语之间断开，不会把「课程之间」拆开 */
+.intro { margin-top: 22px; font-size: clamp(15px, 1.25vw, 17px); line-height: 1.7; color: var(--fg-2); }
+.intro span { white-space: nowrap; }
 .cta { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 32px; }
 .meta { margin-top: 20px; color: var(--fg-4); font-size: 13px; }
 .meta a, .fine a { color: var(--fg-2); text-decoration: underline; text-underline-offset: 3px; text-decoration-color: rgb(255 255 255 / 0.22); }
