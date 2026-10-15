@@ -29,7 +29,20 @@ ASTaria 是本机优先的个人时间与事项应用。和析熙聊作业、计
   </tr>
 </table>
 
-<p align="center"><img src="docs/images/mobile.jpg" width="300" alt="手机上的首页"></p>
+<table>
+  <tr>
+    <td width="25%"><img src="docs/images/mobile.jpg" alt="手机上的首页开场"></td>
+    <td width="25%"><img src="docs/images/mobile-chat.jpg" alt="手机上的和析熙聊演示"></td>
+    <td width="25%"><img src="docs/images/mobile-features.jpg" alt="手机上的四个地方示意动画"></td>
+    <td width="25%"><img src="docs/images/mobile-download.jpg" alt="手机上的下载与安装"></td>
+  </tr>
+  <tr>
+    <td>开场</td>
+    <td>和析熙聊</td>
+    <td>四个地方</td>
+    <td>下载与安装</td>
+  </tr>
+</table>
 
 截图里的应用画面与对话都是演示数据，不含任何人的课表、聊天或密钥。截图用 `node scripts/capture-readme.mjs` 重新生成（先 `npm run build`，需要本机装有 Chrome）。
 

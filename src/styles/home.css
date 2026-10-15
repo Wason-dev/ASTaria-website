@@ -21,7 +21,8 @@
 /* 亮玻璃（.glass，见 base.css）：开场的盘面已压低曝光，玻璃提亮后字仍清楚 */
 /* 开场背后是整片亮盘面：玻璃比别处稍暗一点（不提亮、垫一层极淡的暗底），模糊照旧 */
 .hp-pane {
-  padding: clamp(26px, 2.6vw, 38px); border-radius: 28px; text-shadow: 0 1px 18px rgb(0 0 0 / 0.5);
+  /* 右边比左边多留一点：最长那行贴着右缘，上面几行右侧都空着，再加上右缘的亮边，等宽留白看起来右边更挤 */
+  padding: clamp(26px, 2.6vw, 38px) clamp(40px, 4.2vw, 60px) clamp(26px, 2.6vw, 38px) clamp(26px, 2.6vw, 38px); border-radius: 28px; text-shadow: 0 1px 18px rgb(0 0 0 / 0.5);
   /* 很透：底色约 10%，背后的盘面强模糊后几乎原样透出来，只留亮边和一层极淡的暖灰 */
   background: linear-gradient(180deg, rgb(255 255 255 / 0.03), transparent 42%, rgb(255 255 255 / 0.015)), rgb(20 18 16 / 0.1);
   -webkit-backdrop-filter: blur(16px) saturate(130%);

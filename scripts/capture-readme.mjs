@@ -17,6 +17,9 @@ const SHOTS = [
   { file: 'xixi.jpg', path: '/', w: 1440, h: 1000, target: '.more-sec', align: 'top', click: '[data-tone] [data-i="2"]', wait: 2500 },
   { file: 'download.jpg', path: '/download/', w: 1440, h: 900, target: '#macos', align: 'top', offset: 120, wait: 3000 },
   { file: 'mobile.jpg', path: '/', w: 390, h: 844, scale: 3, mobile: true, wait: 4500 },
+  { file: 'mobile-chat.jpg', path: '/', w: 390, h: 844, scale: 3, mobile: true, target: '.chat-demo', align: 'center', wait: 6500 },
+  { file: 'mobile-features.jpg', path: '/', w: 390, h: 844, scale: 3, mobile: true, target: '.feat-stage', align: 'center', wait: 3800 },
+  { file: 'mobile-download.jpg', path: '/download/', w: 390, h: 844, scale: 3, mobile: true, target: '#macos', align: 'top', offset: 90, wait: 3000 },
 ];
 
 const server = spawn('python3', ['-m', 'http.server', String(PORT), '--directory', 'dist'], { stdio: 'ignore' });
