@@ -46,6 +46,8 @@
 }
 .word.small { font-size: clamp(40px, 4.8vw, 72px); font-weight: 400; }
 .slogan { margin-top: 16px; font-size: clamp(17px, 1.6vw, 22px); font-weight: 400; letter-spacing: 0.22em; color: var(--fg-2); }
+/* 口号下面的一句大白话：第一次来的人先看懂这是做什么的 */
+.intro { margin-top: 22px; font-size: clamp(15px, 1.25vw, 17px); line-height: 1.7; color: var(--fg); }
 .cta { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 32px; }
 .meta { margin-top: 20px; color: var(--fg-4); font-size: 13px; }
 .meta a, .fine a { color: var(--fg-2); text-decoration: underline; text-underline-offset: 3px; text-decoration-color: rgb(255 255 255 / 0.22); }
