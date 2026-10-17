@@ -23,7 +23,7 @@
 .pw-bar i { display: block; height: 100%; background: var(--gold-2); transform-origin: 0 50%; transform: scaleX(var(--f, 1)); }
 .pw-caps { display: grid; margin-top: 18px; }
 .pw-cap {
-  grid-area: 1 / 1; font-size: clamp(16px, 1.35vw, 19px); line-height: 1.6; color: var(--fg);
+  grid-area: 1 / 1; font-size: 16px; line-height: 1.6; color: var(--fg);
   opacity: 0; transform: translate3d(0, 6px, 0); transition: opacity 0.45s var(--ease), transform 0.6s var(--ease);
 }
 .pw-stage:not([data-step]) [data-cap='4'],
@@ -31,17 +31,18 @@
 .pw-stage[data-step='3'] [data-cap='3'], .pw-stage[data-step='4'] [data-cap='4'] { opacity: 1; transform: none; }
 /* 放进空档时，每一项为什么落在那里 */
 .pw-why { display: none; }
-.live .pw-why { display: block; position: relative; min-height: 3.2em; margin-top: 10px; font-size: 13.5px; line-height: 1.6; color: var(--fg-3); }
+.live .pw-why { display: block; position: relative; min-height: 3.2em; margin-top: 10px; font-size: 13px; line-height: 1.6; color: var(--fg-3); }
 .pw-why span { position: absolute; inset: 0 0 auto 0; opacity: var(--o, 0); transform: translate3d(0, calc((1 - var(--o, 0)) * 6px), 0); }
 .pw-why b { margin-right: 8px; color: var(--gold-2); font-weight: 500; }
 
 .pw-io { display: grid; gap: 22px; margin-top: 22px; }
 .pw-say { min-width: 0; opacity: var(--sv, 1); }
 .pw-who { color: var(--fg-4); font-size: 11px; }
+/* 和聊天窗里「你」的气泡同一套：字号、行高、圆角、底色 */
 .pw-text {
-  margin-top: 6px; padding: 18px 22px; border-radius: 22px 22px 6px 22px;
-  font-size: clamp(16px, 1.3vw, 19px); line-height: 1.75; color: var(--fg);
-  background: rgb(255 255 255 / 0.07); box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.09);
+  margin-top: 6px; padding: 11px 15px; border-radius: 16px 16px 4px 16px;
+  font-size: 14.5px; line-height: 1.65; color: var(--fg);
+  background: rgb(255 255 255 / 0.1); box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.08);
 }
 .pw-text i { font-style: normal; }
 /* 逐字打出来：第 --k 个字在 --ty 越过它时出现；拆出事项时，句子里其他字变暗、四件事的原文亮成金色 */
@@ -61,7 +62,7 @@
 .pw-slots, .pw-done { grid-area: 1 / 1; min-width: 0; }
 .pw-slots { display: none; }
 .live .pw-slots { display: grid; gap: 10px; align-content: start; }
-.pw-slot { height: 58px; }
+.pw-slot { height: 50px; }
 .pw-done { opacity: var(--dn, 1); transform: translate3d(0, calc((1 - var(--dn, 1)) * 14px), 0); }
 .pw-stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
 .pw-stats p {
@@ -69,7 +70,7 @@
   box-shadow: inset 1px 0 0 rgb(236 211 164 / 0.35);
   opacity: clamp(0, calc(var(--dn, 1) * 4 - var(--j) * 0.7), 1);
 }
-.pw-stats b { font-size: clamp(26px, 2.4vw, 34px); line-height: 1.15; font-weight: 600; color: var(--gold-2); font-variant-numeric: tabular-nums; }
+.pw-stats b { font-size: clamp(22px, 2vw, 28px); line-height: 1.15; font-weight: 600; color: var(--gold-2); font-variant-numeric: tabular-nums; }
 .pw-rcpt { margin-top: 18px; }
 .pw-rcpt .rcpt-l { font-size: 11.5px; margin-top: 4px; }
 
@@ -147,7 +148,7 @@
   display: flex; flex-direction: column; justify-content: center; gap: 3px; width: var(--w0, 100%); padding: 0 18px;
   opacity: clamp(0, 1 - var(--m, 0) * 2.4, 1);
 }
-.pw-c-a b { font-size: 15px; font-weight: 500; color: var(--fg); white-space: nowrap; }
+.pw-c-a b { font-size: 14px; font-weight: 500; color: var(--fg); white-space: nowrap; }
 .pw-c-a span { font-size: 12px; color: var(--fg-2); white-space: nowrap; }
 .pw-c-b { width: var(--w1, 100%); padding: 0 3px; container-type: inline-size; color: #1a150d; opacity: clamp(0, var(--m, 0) * 2.4 - 1.4, 1); }
 
@@ -156,10 +157,8 @@
   .live .pw-rcpt .rcpt-l { display: none; }
   .pw-caps { margin-top: 14px; }
   .pw-io { gap: 16px; margin-top: 16px; }
-  .pw-text { padding: 14px 18px; font-size: 16px; line-height: 1.65; }
   .live .pw-slots { gap: 8px; }
-  .pw-slot { height: 50px; }
-  .pw-c-a b { font-size: 14px; }
+  .pw-slot { height: 46px; }
 }
 
 /* ---------- 窄屏：上面说明和那句话，下面一周；那句话、卡片和回执叠在同一块地方 ---------- */
@@ -177,10 +176,10 @@
   .pw-io { gap: 16px; margin-top: 14px; }
   .live .pw-io { margin-top: 8px; }
   .live .pw-say, .live .pw-out { grid-area: 1 / 1; }
-  .pw-text { padding: 12px 15px; font-size: 14.5px; line-height: 1.65; border-radius: 18px 18px 5px 18px; }
+  .pw-text { padding: 9px 12px; font-size: 13.5px; line-height: 1.6; }
   .live .pw-slots { gap: 6px; }
   .pw-slot { height: 38px; }
-  .pw-stats b { font-size: 24px; }
+  .pw-stats b { font-size: 22px; }
   .pw-stats p { padding-left: 9px; font-size: 11px; }
   .pw-rcpt { margin-top: 12px; padding: 11px 13px; }
   .pw-rcpt .rcpt-l { display: none; }
@@ -196,7 +195,7 @@
   .pw-col > span { left: 1px; right: 1px; }
   .pw-it em { display: none; }
   .pw-c-a { padding: 0 14px; flex-direction: row; align-items: center; justify-content: space-between; gap: 10px; }
-  .pw-c-a b { font-size: 13.5px; }
+  .pw-c-a b { font-size: 13px; }
   .pw-c-a span { font-size: 11.5px; }
   .pw-legend { gap: 4px 12px; margin-top: 8px; font-size: 10.5px; }
   .pw-legend .lg { gap: 5px; }

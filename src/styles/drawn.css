@@ -47,15 +47,9 @@
 .smap-t { font-size: 15px; color: var(--fg); font-weight: 500; }
 .smap-s { font-size: 12px; color: var(--fg-4); }
 .smap-key { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: var(--gold-2); }
-/* 视界：这台电脑外面一道细细的金色光环，缓慢转动 */
-.smap-ring {
-  position: absolute; left: 50%; top: 50%; width: 190px; height: 190px; margin: -95px 0 0 -95px; border-radius: 50%;
-  background: conic-gradient(from 0deg, transparent, rgb(236 211 164 / 0.55), transparent 30%, transparent 55%, rgb(236 211 164 / 0.25), transparent 80%);
-  -webkit-mask: radial-gradient(closest-side, transparent 96%, #000 97%); mask: radial-gradient(closest-side, transparent 96%, #000 97%);
-  animation: spin 24s linear infinite paused;
-}
+/* 宽屏不画「视界」圆环；窄屏上它是「这台电脑」那张卡的亮边（见下方 899px 断点） */
+.smap-ring { display: none; position: absolute; animation: rim 24s linear infinite paused; }
 .smap.vis .smap-ring { animation-play-state: running; }
-@keyframes spin { to { transform: rotate(1turn); } }
 @property --rr { syntax: '<angle>'; inherits: false; initial-value: 0deg; }
 @keyframes rim { to { --rr: 1turn; } }
 /* 连线上走着几个加密文件 */
@@ -103,7 +97,7 @@
     background: conic-gradient(from var(--rr, 0deg), transparent, rgb(236 211 164 / 0.7), transparent 30%, transparent 55%, rgb(236 211 164 / 0.3), transparent 80%);
     -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor;
     mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
-    animation-name: rim;
+    display: block;
   }
   /* 连线：竖在图标中线上，一次走一个加密文件 */
   .smap-line { width: 1px; height: 64px; margin: 0 0 0 41px; background: linear-gradient(180deg, rgb(236 211 164 / 0.05), rgb(236 211 164 / 0.35), rgb(236 211 164 / 0.05)); }
