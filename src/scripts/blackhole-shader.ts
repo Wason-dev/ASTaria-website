@@ -26,6 +26,19 @@ uniform float uMaxPhi, uMaxImpact, uLutR; // uLutR：查找表的镜头半径（
 const float PI = 3.14159265359;
 const float BCRIT = 2.5980762114;
 
+// 查表用手动双线性插值：老 iPad 等设备不能对 32 位浮点纹理做线性过滤，退回半精度会把盘面量化成方块。
+// 这里始终按格子取相邻四个值、用 32 位精度插值（与硬件 LINEAR + CLAMP_TO_EDGE 结果一致），所有设备画面相同。
+float geo(vec2 uv){
+  vec2 t = uv*uLutSize - .5;
+  vec2 f = fract(t);
+  ivec2 i = ivec2(floor(t)), hi = ivec2(uLutSize) - 1;
+  float a = texelFetch(uGeo, clamp(i, ivec2(0), hi), 0).r;
+  float b = texelFetch(uGeo, clamp(i + ivec2(1,0), ivec2(0), hi), 0).r;
+  float c = texelFetch(uGeo, clamp(i + ivec2(0,1), ivec2(0), hi), 0).r;
+  float d = texelFetch(uGeo, clamp(i + ivec2(1,1), ivec2(0), hi), 0).r;
+  return mix(mix(a,b,f.x), mix(c,d,f.x), f.y);
+}
+
 float hash(vec2 p){ vec3 p3 = fract(vec3(p.xyx) * .1031); p3 += dot(p3, p3.yzx + 33.33); return fract((p3.x + p3.y) * p3.z); }
 float noise(vec2 p){ vec2 i = floor(p), f = fract(p); vec2 w = f*f*(3.0-2.0*f);
   return mix(mix(hash(i),hash(i+vec2(1,0)),w.x), mix(hash(i+vec2(0,1)),hash(i+vec2(1,1)),w.x), w.y); }
@@ -136,13 +149,13 @@ void main(){
     if (phi >= terminal.r) break;
     if (phi <= observerPhi) continue;
     float lutY = (phi/uMaxPhi*(uLutSize.y-1.0)+.5)/uLutSize.y;
-    float invR = texture(uGeo,vec2(lutX,lutY)).r;
+    float invR = geo(vec2(lutX,lutY));
     float r = 1.0/max(invR,.0001);
     if (r > 2.95 && r < 14.5){
       vec3 radial = e1*cos(phi) + e2*sin(phi);
       vec3 tangential = -e1*sin(phi) + e2*cos(phi);
       float row = 1.0/uLutSize.y;
-      float w = (texture(uGeo,vec2(lutX,lutY+row)).r - texture(uGeo,vec2(lutX,lutY-row)).r)/(2.0*uMaxPhi/(uLutSize.y-1.0));
+      float w = (geo(vec2(lutX,lutY+row)) - geo(vec2(lutX,lutY-row)))/(2.0*uMaxPhi/(uLutSize.y-1.0));
       vec3 localRay = normalize(-w/sqrt(max(.01,1.0-invR))*radial + invR*tangential);
       vec4 s = disk(radial*r, localRay, min(float(i),1.0));
       color += transmission*s.rgb*s.a;

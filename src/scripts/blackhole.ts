@@ -48,16 +48,15 @@ export function mountBlackHole(host: HTMLElement) {
   gl.useProgram(prog);
   // 测地线查找表：页面打开时算一次（约 300 万步 RK4），之后着色器只查表
   const lut = createGeodesicLut(DIST);
-  const linearFloat = !!gl.getExtension('OES_texture_float_linear');
   const tex = (unit: number, w: number, h: number, data: Float32Array, rgba: boolean) => {
     const t = gl.createTexture();
     gl.activeTexture(gl.TEXTURE0 + unit);
     gl.bindTexture(gl.TEXTURE_2D, t);
-    // 没有浮点线性过滤时退回半精度（WebGL2 核心支持线性过滤）
-    const internal = rgba ? (linearFloat ? gl.RGBA32F : gl.RGBA16F) : (linearFloat ? gl.R32F : gl.R16F);
-    gl.texImage2D(gl.TEXTURE_2D, 0, internal, w, h, 0, rgba ? gl.RGBA : gl.RED, gl.FLOAT, data);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, rgba ? gl.NEAREST : gl.LINEAR);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, rgba ? gl.NEAREST : gl.LINEAR);
+    // 始终 32 位精度、最近邻采样（WebGL2 核心就支持，不靠 OES_texture_float_linear）；插值在着色器里做（见 geo()）。
+    // 以前没有浮点线性过滤时退回半精度，老 iPad 上盘面会碎成方块。
+    gl.texImage2D(gl.TEXTURE_2D, 0, rgba ? gl.RGBA32F : gl.R32F, w, h, 0, rgba ? gl.RGBA : gl.RED, gl.FLOAT, data);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
   };
