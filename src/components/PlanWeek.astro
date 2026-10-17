@@ -1,0 +1,105 @@
+---
+// 一句话交给析熙四项事项，看它们落进这一周。数据与落点见 data/plan-week.ts（落点由应用的自动排程算出）。
+// 滚动推进五步：说一句 → 读这一周 → 拆成事项 → 放进空档 → 回执。往回滑就倒放。
+// 没有 JS、或系统要求减少动态效果时，直接显示排好的一周和回执。
+import { days, free, tasks, order, sentence, receipt, top, span, pct } from '../data/plan-week';
+
+const steps = [
+  '把这周要做的事，一句话说给析熙',
+  '析熙先读这一周：课程、吃饭和已有安排都不动，亮起来的才是真正空着的时间',
+  '拆成 4 项事项，按截止先后排好',
+  '一项项放进最早能完整放下的空档，紧挨已有任务时留 10 分钟',
+  '排好了。全部在截止前，课程和已有安排一处没动，不满意一键撤销',
+];
+// 句子拆成单个字，打字时逐字出现；四件事各自包一层，用来高亮、浮起
+let k = 0;
+const parts = sentence.map((p) => typeof p === 'number'
+  ? { task: p, chars: [...tasks[p].phrase].map((ch) => ({ ch, k: k++ })) }
+  : { task: -1, chars: [...p].map((ch) => ({ ch, k: k++ })) });
+const total = k;
+const plain = sentence.map((p) => (typeof p === 'number' ? tasks[p].phrase : p)).join('');
+const ticks = [8, 10, 12, 14, 16, 18, 20, 22];
+const dueOf = (i: number) => `${days[tasks[i].dueDay].w}截止 · ${tasks[i].min} 分钟`;
+const rank = (i: number) => order.indexOf(i);
+---
+
+<div class="pw-track">
+  <div class="pw-stage" data-pw style={`--n:${total}`}>
+    <div class="pw-left">
+      <div class="pw-bar" aria-hidden="true">{steps.map((_, i) => <span style={`--i:${i}`}><i></i></span>)}</div>
+      <div class="pw-caps">
+        {steps.map((s, i) => <p class="pw-cap" data-cap={i} aria-hidden={i === 4 ? undefined : 'true'}>{s}</p>)}
+      </div>
+      <p class="pw-why" aria-hidden="true">{tasks.map((t, i) => <span data-why={i}><b>{t.title}</b>{t.why}</span>)}</p>
+      <div class="pw-io">
+        <div class="pw-say">
+          <p class="pw-who">你</p>
+          <p class="pw-text">
+            <span class="sr-only">{plain}</span>
+            <span aria-hidden="true">{parts.map((p) => p.task < 0
+              ? p.chars.map((c) => <i style={`--k:${c.k}`}>{c.ch}</i>)
+              : <span class="pw-ph" data-ph={p.task}>{p.chars.map((c) => <i style={`--k:${c.k}`}>{c.ch}</i>)}</span>)}</span>
+          </p>
+        </div>
+        <div class="pw-out">
+          <div class="pw-slots" aria-hidden="true">{tasks.map(() => <span class="pw-slot"></span>)}</div>
+          <div class="pw-done">
+            <div class="pw-stats">
+              <p style="--j:0"><b>1</b>句话</p>
+              <p style="--j:1"><b>{tasks.length}</b>项事项</p>
+              <p style="--j:2"><b>{tasks.length}</b>段时间</p>
+              <p style="--j:3"><b>0</b>处冲突</p>
+            </div>
+            <div class="rcpt pw-rcpt">
+              <p class="rcpt-t">{receipt.title}<span class="rcpt-u">{receipt.undo}</span></p>
+              {receipt.lines.map((l) => <p class="rcpt-l">{l}</p>)}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="pw-week glass" data-glass role="img" aria-label={`示意图：这一周的课程、吃饭和已有安排不动；${order.map((i) => `${tasks[i].title}排在${days[tasks[i].day].w} ${tasks[i].at[0]}–${tasks[i].at[1]}`).join('，')}，全部在截止前`}>
+      <div class="pw-head">
+        <span></span>
+        {days.map((d, i) => (
+          <p class:list={['pw-dh', { today: d.today }]} style={`--i:${i}`}>
+            <b>{d.w}</b><span class="mono">{d.today ? '今天' : d.d}</span>
+            {tasks.some((t) => t.dueDay === i) && <em class="pw-due" data-due={tasks.findIndex((t) => t.dueDay === i)}>截止</em>}
+          </p>
+        ))}
+      </div>
+      <div class="pw-body">
+        <div class="pw-axis">{ticks.map((h) => <span style={`top:${pct(h * 60)}%`}>{String(h).padStart(2, '0')}<i>:00</i></span>)}</div>
+        <div class="pw-cols">
+          {ticks.slice(1, -1).map((h) => <span class="pw-hl" style={`top:${pct(h * 60)}%`}></span>)}
+          <span class="pw-scanbox" aria-hidden="true"><span class="pw-scan"></span></span>
+          {days.map((d, i) => (
+            <div class="pw-col" style={`--i:${i}`}>
+              {free(d).map(([a, b]) => <span class="pw-free" style={`top:${pct(a)}%;height:${pct(b) - pct(a)}%`}></span>)}
+              {d.items.map((it) => <span class:list={['pw-it', it.k]} style={`top:${top(it.s)}%;height:${span(it.s, it.e)}%`}><em>{it.k === 'break' ? '' : it.t.split('|').map((w, j) => <>{j > 0 && <wbr />}{w}</>)}</em></span>)}
+              {tasks.map((t, j) => t.day === i && (
+                <span class="pw-new" data-new={j} style={`top:${top(t.at[0])}%;height:${span(t.at[0], t.at[1])}%`}>
+                  <em><b class="pw-lf">{t.short}</b><b class="pw-lt">{t.tiny}</b></em>
+                </span>
+              ))}
+            </div>
+          ))}
+        </div>
+      </div>
+      <div class="pw-legend" aria-hidden="true">
+        <span class="lg course">课程与活动</span><span class="lg task">已排任务</span><span class="lg gap">空档</span><span class="lg new">新排进来</span><span class="lg due">截止日</span>
+      </div>
+    </div>
+
+    <div class="pw-fly" aria-hidden="true">
+      {tasks.map((t, i) => (
+        <div class="pw-card glass" data-card={i} data-rank={rank(i)}>
+          <span class="pw-c-gold"></span>
+          <span class="pw-c-a"><b>{t.title}</b><span>{dueOf(i)}</span></span>
+          <span class="pw-c-b"><b class="pw-lf">{t.short}</b><b class="pw-lt">{t.tiny}</b></span>
+        </div>
+      ))}
+    </div>
+  </div>
+</div>

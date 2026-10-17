@@ -3,7 +3,7 @@ import Base from '../layouts/Base.astro';
 import Icon from '../components/Icon.astro';
 import Shot from '../components/Shot.astro';
 import XixiChat from '../components/XixiChat.astro';
-import DayGaps from '../components/DayGaps.astro';
+import PlanWeek from '../components/PlanWeek.astro';
 import WeekShift from '../components/WeekShift.astro';
 import WorkNow from '../components/WorkNow.astro';
 import FreeWeek from '../components/FreeWeek.astro';
@@ -11,6 +11,7 @@ import HorizonArc from '../components/HorizonArc.astro';
 import SyncMap from '../components/SyncMap.astro';
 import XixiMore from '../components/XixiMore.astro';
 import '../styles/drawn.css';
+import '../styles/plan.css';
 import '../styles/home.css';
 import { release, releaseUrl, publishedDate } from '../data/release';
 import homeIdle from '../assets/shots/home.png';
@@ -82,8 +83,9 @@ const cards = [
   <section class="gaps" aria-labelledby="g-h">
     <p class="eyebrow" data-reveal>排程</p>
     <h2 id="g-h" class="headline sm" data-reveal="lines"><span class="ln ln-row"><span>放进真实的</span><span class="hollow">空档</span></span></h2>
-    <p class="gaps-body" data-reveal="up">析熙先看这一天已经被课程和任务占住的时间，再把新事项放进空着的时段，不和已有安排重叠。</p>
-    <DayGaps />
+    <p class="gaps-body" data-reveal="up">一周的事一次说完。析熙读你的课表和已有安排，按截止先后把每一项放进真正空着的时间，不用你一格格去排，已经定下的也不会被挪动。</p>
+    <p class="gaps-note" data-reveal>演示数据为虚构；四段时间由应用的自动排程按这份课表实际算出。</p>
+    <PlanWeek />
   </section>
 
   <!-- 功能区 -->
@@ -172,9 +174,11 @@ const cards = [
     import { mountHome } from '../scripts/home';
     import { mountXixiDemo } from '../scripts/xixi-demo';
     import { mountGlass } from '../scripts/glass';
+    import { mountPlanWeek } from '../scripts/plan-week';
     if (!mountBlackHole(document.getElementById('bh')!)) document.documentElement.classList.add('bh-off');
     mountHome();
     mountXixiDemo();
+    mountPlanWeek();
     mountGlass();
   </script>
 </Base>

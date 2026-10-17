@@ -1,0 +1,204 @@
+/* 排程：一句话交给析熙四项事项，滚动推进五步，看它们落进这一周（components/PlanWeek.astro、scripts/plan-week.ts）。
+   默认样式（没有 JS、或系统要求减少动态效果）就是最后一步：排好的一周和回执。
+   脚本给 .pw-track 加 .live 后才钉住、跟着滚动推进；各步进度写成 CSS 变量：
+   --ty 打到第几个字、--sc 扫过这一周、--sd/--sv 句子变暗/淡出、--dn 回执；卡片的位置与大小由脚本逐帧写入。
+   这里只有周视图本身是玻璃；会动、会变透明的都是它旁边的兄弟元素，不包住玻璃（否则玻璃的模糊会失效）。 */
+.gaps { max-width: calc(var(--wrap) + var(--pad) * 2); margin: 0 auto 22vh; padding: 0 var(--pad); }
+.gaps-body { margin-top: 20px; max-width: 32em; color: var(--fg-3); font-size: clamp(16px, 1.4vw, 19px); line-height: 1.75; }
+.gaps-note { margin-top: 14px; color: var(--fg-4); font-size: 12px; }
+
+.pw-track { position: relative; margin-top: 56px; }
+.pw-track.live { height: 440svh; margin-top: 4vh; }
+.pw-stage {
+  --r0: 14px; --r1: 7px; --gap: 6px;
+  position: relative; display: grid; grid-template-columns: clamp(280px, 30vw, 380px) minmax(0, 1fr);
+  gap: clamp(28px, 4vw, 56px); align-items: center;
+}
+.live .pw-stage { position: sticky; top: 52px; height: calc(100svh - 52px); }
+
+/* ---------- 左边：进度、说明、那句话、卡片和回执 ---------- */
+.pw-left { display: flex; flex-direction: column; min-width: 0; }
+.pw-bar { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 6px; }
+.pw-bar span { height: 3px; border-radius: 2px; overflow: hidden; background: rgb(255 255 255 / 0.12); }
+.pw-bar i { display: block; height: 100%; background: var(--gold-2); transform-origin: 0 50%; transform: scaleX(var(--f, 1)); }
+.pw-caps { display: grid; margin-top: 18px; }
+.pw-cap {
+  grid-area: 1 / 1; font-size: clamp(16px, 1.35vw, 19px); line-height: 1.6; color: var(--fg);
+  opacity: 0; transform: translate3d(0, 6px, 0); transition: opacity 0.45s var(--ease), transform 0.6s var(--ease);
+}
+.pw-stage:not([data-step]) [data-cap='4'],
+.pw-stage[data-step='0'] [data-cap='0'], .pw-stage[data-step='1'] [data-cap='1'], .pw-stage[data-step='2'] [data-cap='2'],
+.pw-stage[data-step='3'] [data-cap='3'], .pw-stage[data-step='4'] [data-cap='4'] { opacity: 1; transform: none; }
+/* 放进空档时，每一项为什么落在那里 */
+.pw-why { display: none; }
+.live .pw-why { display: block; position: relative; min-height: 3.2em; margin-top: 10px; font-size: 13.5px; line-height: 1.6; color: var(--fg-3); }
+.pw-why span { position: absolute; inset: 0 0 auto 0; opacity: var(--o, 0); transform: translate3d(0, calc((1 - var(--o, 0)) * 6px), 0); }
+.pw-why b { margin-right: 8px; color: var(--gold-2); font-weight: 500; }
+
+.pw-io { display: grid; gap: 22px; margin-top: 22px; }
+.pw-say { min-width: 0; opacity: var(--sv, 1); }
+.pw-who { color: var(--fg-4); font-size: 11px; }
+.pw-text {
+  margin-top: 6px; padding: 18px 22px; border-radius: 22px 22px 6px 22px;
+  font-size: clamp(16px, 1.3vw, 19px); line-height: 1.75; color: var(--fg);
+  background: rgb(255 255 255 / 0.07); box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.09);
+}
+.pw-text i { font-style: normal; }
+/* 逐字打出来：第 --k 个字在 --ty 越过它时出现；拆出事项时，句子里其他字变暗、四件事的原文亮成金色 */
+.live .pw-text i { opacity: calc(clamp(0, var(--ty, 999) - var(--k), 1) * (1 - var(--sd, 0) * 0.62)); }
+.live .pw-ph i { opacity: clamp(0, var(--ty, 999) - var(--k), 1); }
+@property --h { syntax: '<number>'; inherits: true; initial-value: 0; }
+.pw-ph {
+  border-radius: 4px; -webkit-box-decoration-break: clone; box-decoration-break: clone;
+  background: linear-gradient(rgb(236 211 164 / calc(var(--h, 0) * 0.16)), rgb(236 211 164 / calc(var(--h, 0) * 0.16)));
+  box-shadow: inset 0 -1.5px 0 rgb(236 211 164 / calc(var(--h, 0) * 0.7));
+}
+.live .pw-ph i { color: rgb(calc(245 - var(--h, 0) * 9) calc(242 - var(--h, 0) * 31) calc(236 - var(--h, 0) * 72)); }
+.pw-caret { display: inline-block; width: 1.5px; height: 1.05em; margin: 0 -1.5px 0 0; vertical-align: -0.18em; background: var(--gold-2); animation: caret 1s steps(1) infinite; }
+
+/* 卡片要去的位置（量出来给脚本用）与回执叠在同一格 */
+.pw-out { display: grid; min-width: 0; }
+.pw-slots, .pw-done { grid-area: 1 / 1; min-width: 0; }
+.pw-slots { display: none; }
+.live .pw-slots { display: grid; gap: 10px; align-content: start; }
+.pw-slot { height: 58px; }
+.pw-done { opacity: var(--dn, 1); transform: translate3d(0, calc((1 - var(--dn, 1)) * 14px), 0); }
+.pw-stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
+.pw-stats p {
+  display: flex; flex-direction: column; gap: 2px; padding-left: 12px; font-size: 12px; color: var(--fg-2); text-shadow: 0 1px 12px rgb(0 0 0 / 0.6);
+  box-shadow: inset 1px 0 0 rgb(236 211 164 / 0.35);
+  opacity: clamp(0, calc(var(--dn, 1) * 4 - var(--j) * 0.7), 1);
+}
+.pw-stats b { font-size: clamp(26px, 2.4vw, 34px); line-height: 1.15; font-weight: 600; color: var(--gold-2); font-variant-numeric: tabular-nums; }
+.pw-rcpt { margin-top: 18px; }
+.pw-rcpt .rcpt-l { font-size: 11.5px; margin-top: 4px; }
+
+/* ---------- 右边：画出来的一周 ---------- */
+.pw-week { display: flex; flex-direction: column; min-width: 0; height: min(calc(100svh - 150px), 660px); padding: 18px 18px 14px; border-radius: 26px; }
+.pw-track:not(.live) .pw-week { height: 640px; }
+.pw-head, .pw-body { display: grid; grid-template-columns: 38px minmax(0, 1fr); }
+.pw-head { grid-template-columns: 38px repeat(7, minmax(0, 1fr)); column-gap: var(--gap); padding-bottom: 10px; }
+.pw-dh { display: flex; flex-direction: column; align-items: center; gap: 1px; min-width: 0; font-size: 12.5px; }
+.pw-dh b { font-weight: 500; color: var(--fg-2); }
+.pw-dh .mono { font-size: 10.5px; color: var(--fg-4); }
+.pw-dh.today .mono { color: var(--gold-2); }
+.pw-due {
+  margin-top: 3px; padding: 0 6px; border-radius: 999px; font-style: normal; font-size: 10px; line-height: 16px;
+  color: var(--gold-2); box-shadow: inset 0 0 0 1px rgb(236 211 164 / 0.45); opacity: var(--o, 1);
+}
+.pw-body { flex: 1; min-height: 0; }
+.pw-axis { position: relative; }
+.pw-axis span { position: absolute; right: 8px; transform: translateY(-50%); font-family: var(--mono); font-size: 10px; color: var(--fg-4); }
+.pw-axis span:first-child { transform: none; }
+.pw-axis span:last-child { transform: translateY(-100%); }
+.pw-axis i { font-style: normal; }
+.pw-cols { position: relative; display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); column-gap: var(--gap); }
+.pw-hl { position: absolute; left: 0; right: 0; height: 1px; background: rgb(255 255 255 / 0.05); }
+.pw-col { position: relative; min-width: 0; border-radius: 10px; background: rgb(255 255 255 / 0.025); }
+.pw-col > span { position: absolute; left: 3px; right: 3px; border-radius: var(--r1); }
+.pw-it { display: flex; padding: 4px 5px; overflow: hidden; opacity: calc(1 - clamp(0, var(--sc, 1) * 8.7 - var(--i) - 0.15, 1) * 0.3); }
+/* 课程名按词换行，完整显示（窄屏上不显示文字） */
+.pw-it em { font-style: normal; font-size: 11px; line-height: 1.25; word-break: keep-all; overflow-wrap: anywhere; }
+.pw-it.class { background: rgb(255 255 255 / 0.1); color: var(--fg-2); }
+.pw-it.break { background: repeating-linear-gradient(135deg, rgb(255 255 255 / 0.05) 0 5px, transparent 5px 10px); }
+.pw-it.task { box-shadow: inset 0 0 0 1px rgb(236 211 164 / 0.5); color: var(--gold-2); }
+/* 空档：扫描光经过这一天时亮起 */
+/* 扫描光的亮边经过这一天的左缘时开始亮，走完这一天时全亮（与 .pw-scan 的位移对应） */
+.pw-free { background: rgb(236 211 164 / 0.07); box-shadow: inset 0 0 0 1px rgb(236 211 164 / 0.28); opacity: clamp(0, var(--sc, 1) * 8.7 - var(--i) - 0.15, 1); }
+.pw-scanbox { position: absolute; inset: 0; overflow: hidden; border-radius: 10px; pointer-events: none; z-index: 2; }
+.pw-scan {
+  position: absolute; top: 0; bottom: 0; left: -24%; width: 24%;
+  background: linear-gradient(90deg, transparent, rgb(236 211 164 / 0.16) 60%, rgb(255 244 222 / 0.32) 92%, transparent);
+  transform: translate3d(calc(var(--sc, 1) * 520%), 0, 0); opacity: var(--sb, 0);
+}
+/* 新排进来的事项：卡片飞到这里落定后换成它；落下那一下亮一圈 */
+.pw-new {
+  z-index: 1; display: flex; align-items: center; justify-content: center; padding: 0 3px; overflow: hidden; container-type: inline-size;
+  background: linear-gradient(180deg, rgb(244 224 186 / 0.92), rgb(222 196 148 / 0.86)); color: #1a150d;
+  opacity: var(--l, 1);
+}
+.pw-new.hit { animation: pw-hit 1s var(--ease) both; }
+@keyframes pw-hit { 0% { box-shadow: 0 0 0 0 rgb(236 211 164 / 0); } 25% { box-shadow: 0 0 26px 3px rgb(236 211 164 / 0.75); } 100% { box-shadow: 0 0 0 0 rgb(236 211 164 / 0); } }
+/* 名字随块的宽度缩放，总能完整放下；太窄时换成两个字的简称 */
+.pw-new em, .pw-c-b { display: flex; justify-content: center; align-items: center; min-width: 0; font-style: normal; white-space: nowrap; }
+.pw-lf, .pw-lt { font-size: clamp(9px, 23cqi, 12px); font-weight: 600; }
+.pw-lt { display: none; }
+@container (max-width: 40px) { .pw-lf { display: none; } .pw-lt { display: inline; } }
+.pw-legend { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px 18px; margin-top: 12px; color: var(--fg-4); font-size: 11.5px; }
+.lg.due::before { width: 16px; height: 10px; border-radius: 999px; box-shadow: inset 0 0 0 1px rgb(236 211 164 / 0.6); }
+/* ---------- 浮起、排队、飞进空档的四张卡片（只在 .live 时出现，位置大小由脚本写入） ---------- */
+.pw-fly { display: none; }
+.live .pw-fly { display: block; position: absolute; inset: 0; z-index: 3; pointer-events: none; }
+/* 卡片是玻璃（.glass）；飞进空档时亮边、高光和投影渐隐，金色一层渐显，落定时和周视图里的金色块一样 */
+.pw-fly .pw-card {
+  position: absolute; left: 0; top: 0; overflow: hidden; visibility: hidden;
+  border-radius: calc(var(--r0) + (var(--r1) - var(--r0)) * var(--m, 0));
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / calc(0.45 * (1 - var(--m, 0)))),
+    inset 0 -1px 0 rgb(255 255 255 / calc(0.08 * (1 - var(--m, 0)))),
+    0 22px 50px -20px rgb(0 0 0 / calc(0.75 * (1 - var(--m, 0))));
+  /* 垫一层暗色，背后是亮盘面时字也清楚 */
+  background-color: rgb(16 14 12 / calc(0.42 * (1 - var(--m, 0))));
+}
+.pw-card::before, .pw-card::after { opacity: calc(1 - var(--m, 0)); }
+.pw-c-gold { position: absolute; inset: 0; background: linear-gradient(180deg, rgb(244 224 186 / 0.92), rgb(222 196 148 / 0.86)); opacity: var(--m, 0); }
+.pw-c-a, .pw-c-b { position: absolute; z-index: 1; left: 0; top: 0; height: 100%; }
+.pw-c-a {
+  display: flex; flex-direction: column; justify-content: center; gap: 3px; width: var(--w0, 100%); padding: 0 18px;
+  opacity: clamp(0, 1 - var(--m, 0) * 2.4, 1);
+}
+.pw-c-a b { font-size: 15px; font-weight: 500; color: var(--fg); white-space: nowrap; }
+.pw-c-a span { font-size: 12px; color: var(--fg-2); white-space: nowrap; }
+.pw-c-b { width: var(--w1, 100%); padding: 0 3px; container-type: inline-size; color: #1a150d; opacity: clamp(0, var(--m, 0) * 2.4 - 1.4, 1); }
+
+/* ---------- 矮一些的桌面屏：回执只留标题，那句话和卡片收紧一点，左右两栏都在一屏内 ---------- */
+@media (min-width: 1024px) and (max-height: 900px) {
+  .live .pw-rcpt .rcpt-l { display: none; }
+  .pw-caps { margin-top: 14px; }
+  .pw-io { gap: 16px; margin-top: 16px; }
+  .pw-text { padding: 14px 18px; font-size: 16px; line-height: 1.65; }
+  .live .pw-slots { gap: 8px; }
+  .pw-slot { height: 50px; }
+  .pw-c-a b { font-size: 14px; }
+}
+
+/* ---------- 窄屏：上面说明和那句话，下面一周；那句话、卡片和回执叠在同一块地方 ---------- */
+@media (max-width: 1023px) {
+  .pw-stage { grid-template-columns: minmax(0, 1fr); gap: 28px; --gap: 3px; --r0: 12px; --r1: 5px; }
+  .pw-track:not(.live) .pw-week { height: 520px; }
+  .live .pw-stage { max-width: 720px; margin: 0 auto; }
+  .live .pw-stage { display: flex; flex-direction: column; align-items: stretch; gap: 12px; padding: 14px 0 12px; }
+  .pw-fly .pw-card { -webkit-backdrop-filter: blur(16px) saturate(170%) brightness(1.1); backdrop-filter: blur(16px) saturate(170%) brightness(1.1); }
+  .live .pw-left { flex: none; }
+  .pw-caps { margin-top: 12px; }
+  .pw-cap { font-size: 15px; line-height: 1.55; }
+  .live .pw-caps { min-height: 3.1em; }
+  .live .pw-why { min-height: 3.1em; margin-top: 4px; font-size: 12.5px; }
+  .pw-io { gap: 16px; margin-top: 14px; }
+  .live .pw-io { margin-top: 8px; }
+  .live .pw-say, .live .pw-out { grid-area: 1 / 1; }
+  .pw-text { padding: 12px 15px; font-size: 14.5px; line-height: 1.65; border-radius: 18px 18px 5px 18px; }
+  .live .pw-slots { gap: 6px; }
+  .pw-slot { height: 38px; }
+  .pw-stats b { font-size: 24px; }
+  .pw-stats p { padding-left: 9px; font-size: 11px; }
+  .pw-rcpt { margin-top: 12px; padding: 11px 13px; }
+  .pw-rcpt .rcpt-l { display: none; }
+  .live .pw-week { flex: 1; height: auto; min-height: 0; padding: 12px 8px 10px; border-radius: 20px; }
+  .pw-head, .pw-body { grid-template-columns: 22px minmax(0, 1fr); }
+  .pw-head { grid-template-columns: 22px repeat(7, minmax(0, 1fr)); padding-bottom: 6px; }
+  .pw-dh { font-size: 11px; }
+  .pw-dh .mono { font-size: 9px; }
+  .pw-due { padding: 0 3px; font-size: 8.5px; line-height: 13px; }
+  .pw-axis span { right: 4px; font-size: 9px; }
+  .pw-axis span:nth-child(even), .pw-axis i { display: none; }
+  .pw-col { border-radius: 6px; }
+  .pw-col > span { left: 1px; right: 1px; }
+  .pw-it em { display: none; }
+  .pw-c-a { padding: 0 14px; flex-direction: row; align-items: center; justify-content: space-between; gap: 10px; }
+  .pw-c-a b { font-size: 13.5px; }
+  .pw-c-a span { font-size: 11.5px; }
+  .pw-legend { gap: 4px 12px; margin-top: 8px; font-size: 10.5px; }
+  .pw-legend .lg { gap: 5px; }
+  .pw-legend .lg::before { width: 11px; height: 8px; }
+}
