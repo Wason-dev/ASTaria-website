@@ -1,14 +1,15 @@
-/* 排程：一句话交给析熙四项事项，滚动推进五步，看它们落进这一周（components/PlanWeek.astro、scripts/plan-week.ts）。
+/* 排程：一句话交给析熙四项事项，滚动推进六步，看它们落进这一周，再换个条件看它重排（components/PlanWeek.astro、scripts/plan-week.ts）。
    默认样式（没有 JS、或系统要求减少动态效果）就是最后一步：排好的一周和回执。
    脚本给 .pw-track 加 .live 后才钉住、跟着滚动推进；各步进度写成 CSS 变量：
-   --ty 打到第几个字、--sc 扫过这一周、--sd/--sv 句子变暗/淡出、--dn 回执；卡片的位置与大小由脚本逐帧写入。
+   --ty 打到第几个字、--sc 扫过这一周、--sd/--sv 句子变暗/淡出、--dn 回执、--tv 换条件；卡片的位置与大小由脚本逐帧写入。
+   .off：不属于当前条件的空档、截止、金色块和回执行（data-cond 写着它属于哪几种条件，脚本切换）。
    这里只有周视图本身是玻璃；会动、会变透明的都是它旁边的兄弟元素，不包住玻璃（否则玻璃的模糊会失效）。 */
 .gaps { max-width: calc(var(--wrap) + var(--pad) * 2); margin: 0 auto 22vh; padding: 0 var(--pad); }
 .gaps-body { margin-top: 20px; max-width: 32em; color: var(--fg-3); font-size: clamp(16px, 1.4vw, 19px); line-height: 1.75; }
 .gaps-note { margin-top: 14px; color: var(--fg-4); font-size: 12px; }
 
 .pw-track { position: relative; margin-top: 56px; }
-.pw-track.live { height: 440svh; margin-top: 4vh; }
+.pw-track.live { height: 488svh; margin-top: 4vh; }
 .pw-stage {
   --r0: 14px; --r1: 7px; --gap: 6px;
   position: relative; display: grid; grid-template-columns: clamp(280px, 30vw, 380px) minmax(0, 1fr);
@@ -18,7 +19,7 @@
 
 /* ---------- 左边：进度、说明、那句话、卡片和回执 ---------- */
 .pw-left { display: flex; flex-direction: column; min-width: 0; }
-.pw-bar { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 6px; }
+.pw-bar { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 6px; }
 .pw-bar span { height: 3px; border-radius: 2px; overflow: hidden; background: rgb(255 255 255 / 0.12); }
 .pw-bar i { display: block; height: 100%; background: var(--gold-2); transform-origin: 0 50%; transform: scaleX(var(--f, 1)); }
 .pw-caps { display: grid; margin-top: 18px; }
@@ -28,15 +29,29 @@
 }
 .pw-stage:not([data-step]) [data-cap='4'],
 .pw-stage[data-step='0'] [data-cap='0'], .pw-stage[data-step='1'] [data-cap='1'], .pw-stage[data-step='2'] [data-cap='2'],
-.pw-stage[data-step='3'] [data-cap='3'], .pw-stage[data-step='4'] [data-cap='4'] { opacity: 1; transform: none; }
-/* 放进空档时，每一项为什么落在那里 */
+.pw-stage[data-step='3'] [data-cap='3'], .pw-stage[data-step='4'] [data-cap='4'], .pw-stage[data-step='5'] [data-cap='5'] { opacity: 1; transform: none; }
+/* 每一项为什么落在那里：放进空档时跟着说（data-why，随滚动），排完以后留着（data-rs，点金色块或换条件时换） */
 .pw-why { display: none; }
-.live .pw-why { display: block; position: relative; min-height: 3.2em; margin-top: 10px; font-size: 13px; line-height: 1.6; color: var(--fg-3); }
+.live .pw-why, .tap .pw-why { display: block; position: relative; min-height: 3.2em; margin-top: 10px; font-size: 13px; line-height: 1.6; color: var(--fg-2); text-shadow: 0 0 10px rgb(0 0 0 / 0.75), 0 1px 3px rgb(0 0 0 / 0.5); }
 .pw-why span { position: absolute; inset: 0 0 auto 0; opacity: var(--o, 0); transform: translate3d(0, calc((1 - var(--o, 0)) * 6px), 0); }
+.pw-why [data-rs] { opacity: 0; transform: translate3d(0, 6px, 0); transition: opacity 0.35s var(--ease), transform 0.5s var(--ease); }
+.pw-why [data-rs].on { opacity: 1; transform: none; }
 .pw-why b { margin-right: 8px; color: var(--gold-2); font-weight: 500; }
 
 .pw-io { display: grid; gap: 22px; margin-top: 22px; }
-.pw-say { min-width: 0; opacity: var(--sv, 1); }
+/* 换个条件：三个选项。滚动时在第六步代替那句话（窄屏上代替统计和回执）出现；不动画时排在回执下面 */
+.pw-try { display: none; }
+.tap .pw-try { display: flex; flex-wrap: wrap; align-content: start; gap: 8px; min-width: 0; }
+.pw-try-l { flex-basis: 100%; color: var(--fg-4); font-size: 11px; }
+.live .pw-try-l { display: none; }
+.pw-try .chip { padding: 6px 13px; font-size: 13px; background: rgb(18 17 16 / 0.72); }
+.pw-try .chip:hover { background: linear-gradient(rgb(255 255 255 / 0.08), rgb(255 255 255 / 0.08)), rgb(18 17 16 / 0.72); }
+.pw-try .chip[aria-pressed='true'] { background: linear-gradient(rgb(236 211 164 / 0.12), rgb(236 211 164 / 0.12)), rgb(18 17 16 / 0.72); }
+.live .pw-say { grid-area: 1 / 1; }
+.live .pw-out { grid-area: 2 / 1; }
+.live .pw-try { grid-area: 1 / 1; align-self: start; visibility: hidden; opacity: var(--tv, 0); transform: translate3d(0, calc((1 - var(--tv, 0)) * 10px), 0); }
+.live .pw-stage[data-step='5'] .pw-try { visibility: visible; }
+.pw-say { min-width: 0; opacity: calc(var(--sv, 1) * (1 - var(--tv, 0))); }
 .pw-who { color: var(--fg-4); font-size: 11px; }
 /* 和聊天窗里「你」的气泡同一套：字号、行高、圆角、底色 */
 .pw-text {
@@ -63,7 +78,7 @@
 .pw-slots { display: none; }
 .live .pw-slots { display: grid; gap: 10px; align-content: start; }
 .pw-slot { height: 50px; }
-.pw-done { opacity: var(--dn, 1); transform: translate3d(0, calc((1 - var(--dn, 1)) * 14px), 0); }
+.pw-done { opacity: var(--dn, 1); transform: translate3d(0, calc((1 - var(--dn, 1)) * 14px - var(--tv, 0) * var(--pull, 0px)), 0); }
 .pw-stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
 .pw-stats p {
   display: flex; flex-direction: column; gap: 2px; padding-left: 12px; font-size: 12px; color: var(--fg-2); text-shadow: 0 1px 12px rgb(0 0 0 / 0.6);
@@ -72,6 +87,7 @@
 }
 .pw-stats b { font-size: clamp(22px, 2vw, 28px); line-height: 1.15; font-weight: 600; color: var(--gold-2); font-variant-numeric: tabular-nums; }
 .pw-rcpt { margin-top: 18px; }
+.pw-rl.off { display: none; }
 .pw-rcpt .rcpt-l { font-size: 11.5px; margin-top: 4px; }
 
 /* ---------- 右边：画出来的一周 ---------- */
@@ -99,7 +115,10 @@
 .pw-col > span { position: absolute; left: 3px; right: 3px; border-radius: var(--r1); }
 .pw-it { display: flex; padding: 4px 5px; overflow: hidden; opacity: calc(1 - clamp(0, var(--sc, 1) * 8.7 - var(--i) - 0.15, 1) * 0.3); }
 /* 课程名按词换行，完整显示（窄屏上不显示文字） */
-.pw-it em { font-style: normal; font-size: 11px; line-height: 1.25; word-break: keep-all; overflow-wrap: anywhere; }
+.pw-it em { position: relative; font-style: normal; font-size: 11px; line-height: 1.25; word-break: keep-all; overflow-wrap: anywhere; }
+.pw-it em.off { display: none; }
+/* 加一场小测：这节课换个名字，描一圈金边 */
+.pw-qz { position: absolute; inset: 0; border-radius: inherit; background: rgb(236 211 164 / 0.12); box-shadow: inset 0 0 0 1px rgb(236 211 164 / 0.65); }
 .pw-it.class { background: rgb(255 255 255 / 0.1); color: var(--fg-2); }
 .pw-it.break { background: repeating-linear-gradient(135deg, rgb(255 255 255 / 0.05) 0 5px, transparent 5px 10px); }
 .pw-it.task { box-shadow: inset 0 0 0 1px rgb(236 211 164 / 0.5); color: var(--gold-2); }
@@ -119,6 +138,11 @@
   opacity: var(--l, 1);
 }
 .pw-new.hit { animation: pw-hit 1s var(--ease) both; }
+/* 选中的那一块（上面那行正在说它）描一圈金色 */
+.pw-new.sel { outline: 1.5px solid rgb(244 224 186 / 0.95); outline-offset: 2px; }
+/* 不属于当前条件的：藏起来但占着位置（换条件时要量它原来在哪） */
+.pw-stage .off { opacity: 0; visibility: hidden; }
+.pw-stage.swap .pw-free, .pw-stage.swap .pw-due, .pw-stage.swap .pw-qz { transition: opacity 0.45s var(--ease), visibility 0.45s; }
 @keyframes pw-hit { 0% { box-shadow: 0 0 0 0 rgb(236 211 164 / 0); } 25% { box-shadow: 0 0 26px 3px rgb(236 211 164 / 0.75); } 100% { box-shadow: 0 0 0 0 rgb(236 211 164 / 0); } }
 /* 名字随块的宽度缩放，总能完整放下；太窄时换成两个字的简称 */
 .pw-new em, .pw-c-b { display: flex; justify-content: center; align-items: center; min-width: 0; font-style: normal; white-space: nowrap; }
@@ -175,7 +199,10 @@
   .live .pw-why { min-height: 3.1em; margin-top: 4px; font-size: 12.5px; }
   .pw-io { gap: 16px; margin-top: 14px; }
   .live .pw-io { margin-top: 8px; }
-  .live .pw-say, .live .pw-out { grid-area: 1 / 1; }
+  .live .pw-say, .live .pw-out, .live .pw-try { grid-area: 1 / 1; }
+  .live .pw-done { opacity: calc(var(--dn, 1) * (1 - var(--tv, 0))); }
+  .pw-try .chip { padding: 6px 12px; font-size: 12.5px; }
+  .pw-new.sel { outline-width: 1.5px; outline-offset: 1px; }
   .pw-text { padding: 9px 12px; font-size: 13.5px; line-height: 1.6; }
   .live .pw-slots { gap: 6px; }
   .pw-slot { height: 38px; }

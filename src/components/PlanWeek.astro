@@ -1,8 +1,9 @@
 ---
 // 一句话交给析熙四项事项，看它们落进这一周。数据与落点见 data/plan-week.ts（落点由应用的自动排程算出）。
-// 滚动推进五步：说一句 → 读这一周 → 拆成事项 → 放进空档 → 回执。往回滑就倒放。
-// 没有 JS、或系统要求减少动态效果时，直接显示排好的一周和回执。
-import { days, free, tasks, order, sentence, receipt, top, span, pct } from '../data/plan-week';
+// 滚动推进六步：说一句 → 读这一周 → 拆成事项 → 放进空档 → 回执 → 换个条件。往回滑就倒放。
+// 每块金色都留着「为什么是这里」：排完以后点它，上面那行就换成它的那句话；换条件时先说变化最大的那一项。
+// 没有 JS 时直接显示排好的一周和回执；系统要求减少动态效果时也一样，但仍可点金色块、换条件。
+import { days, free, tasks, order, conds, dueDay, reason, sentence, receiptHead, receiptUndo, receiptLines, weekLabel, top, span, pct } from '../data/plan-week';
 
 const steps = [
   '把这周要做的事，一句话说给析熙',
@@ -10,6 +11,7 @@ const steps = [
   '拆成 4 项事项，按截止先后排好',
   '一项项放进最早能完整放下的空档，紧挨已有任务时留 10 分钟',
   '排好了。全部在截止前，课程和已有安排一处没动，不满意一键撤销',
+  '换个条件试试：同样四件事、同样的规则，这周不一样，落点就不一样',
 ];
 // 句子拆成单个字，打字时逐字出现；四件事各自包一层，用来高亮、浮起
 let k = 0;
@@ -19,18 +21,39 @@ const parts = sentence.map((p) => typeof p === 'number'
 const total = k;
 const plain = sentence.map((p) => (typeof p === 'number' ? tasks[p].phrase : p)).join('');
 const ticks = [8, 10, 12, 14, 16, 18, 20, 22];
-const dueOf = (i: number) => `${days[tasks[i].dueDay].w}截止 · ${tasks[i].min} 分钟`;
+const dueOf = (i: number) => `${days[dueDay(i)].w}截止 · ${tasks[i].min} 分钟`;
 const rank = (i: number) => order.indexOf(i);
+// data-cond：这一样东西属于哪几种条件（空格分隔）。不属于「原来这周」的先带 .off，没有 JS 时也藏着
+const which = (pred: (ci: number) => boolean) => conds.map((_, ci) => ci).filter(pred).join(' ');
+const has0 = (cs: string) => cs.split(' ').includes('0');
+// 金色块：几种条件下落点相同的合成一块
+type Blk = { task: number; day: number; at: [string, string]; cs: number[] };
+const blks: Blk[] = [];
+conds.forEach((c, ci) => c.places.forEach((p) => {
+  const same = blks.find((b) => b.task === p.task && b.day === p.day && b.at.join() === p.at.join());
+  if (same) same.cs.push(ci); else blks.push({ task: p.task, day: p.day, at: p.at, cs: [ci] });
+}));
+// 可安排时段不同的条件各画一套空档
+const availSets = [...new Set(conds.map((c) => JSON.stringify(c.avail ?? null)))].map((s) => ({
+  avail: (JSON.parse(s) ?? undefined) as [string, string][] | undefined,
+  cs: which((ci) => JSON.stringify(conds[ci].avail ?? null) === s),
+}));
+const altCs = which((ci) => !!conds[ci].alt), plainCs = which((ci) => !conds[ci].alt);
+const segs0 = conds[0].places.length;
 ---
 
 <div class="pw-track">
   <div class="pw-stage" data-pw style={`--n:${total}`}>
     <div class="pw-left">
-      <div class="pw-bar" aria-hidden="true">{steps.map((_, i) => <span style={`--i:${i}`}><i></i></span>)}</div>
+      <div class="pw-bar" aria-hidden="true">{steps.map(() => <span><i></i></span>)}</div>
       <div class="pw-caps">
         {steps.map((s, i) => <p class="pw-cap" data-cap={i} aria-hidden={i === 4 ? undefined : 'true'}>{s}</p>)}
       </div>
-      <p class="pw-why" aria-hidden="true">{tasks.map((t, i) => <span data-why={i}><b>{t.title}</b>{t.why}</span>)}</p>
+      <p class="pw-why" aria-hidden="true">
+        {tasks.map((t, i) => <span data-why={i}><b>{t.title}</b>{reason(0, i)}</span>)}
+        <span data-rs="hint">点周视图里任意一块金色，看它为什么排在那里。</span>
+        {conds.map((_, ci) => tasks.map((t, ti) => <span data-rs={`${ci}-${ti}`}><b>{t.title}</b>{reason(ci, ti)}</span>))}
+      </p>
       <div class="pw-io">
         <div class="pw-say">
           <p class="pw-who">你</p>
@@ -47,27 +70,38 @@ const rank = (i: number) => order.indexOf(i);
             <div class="pw-stats">
               <p style="--j:0"><b>1</b>句话</p>
               <p style="--j:1"><b>{tasks.length}</b>项事项</p>
-              <p style="--j:2"><b>{tasks.length}</b>段时间</p>
+              <p style="--j:2"><b data-segs>{segs0}</b>段时间</p>
               <p style="--j:3"><b>0</b>处冲突</p>
             </div>
             <div class="rcpt pw-rcpt">
-              <p class="rcpt-t">{receipt.title}<span class="rcpt-u">{receipt.undo}</span></p>
-              {receipt.lines.map((l) => <p class="rcpt-l">{l}</p>)}
+              <p class="rcpt-t"><span>{receiptHead}<span data-segs>{segs0}</span> 段时间</span><span class="rcpt-u">{receiptUndo}</span></p>
+              {conds.map((_, ci) => <div class:list={['pw-rl', { off: ci > 0 }]} data-cond={String(ci)}>{receiptLines(ci).map((l) => <p class="rcpt-l">{l}</p>)}</div>)}
             </div>
           </div>
         </div>
+        <div class="pw-try" role="group" aria-label="换个条件，看落点怎么变">
+          <p class="pw-try-l" aria-hidden="true">换个条件试试</p>
+          {conds.map((c, ci) => (
+            <button type="button" class="chip" data-pick={ci} data-key={c.key} data-label={weekLabel(ci)} aria-pressed={ci === 0 ? 'true' : 'false'}>{c.label}</button>
+          ))}
+        </div>
       </div>
+      <p class="sr-only" aria-live="polite" data-live></p>
     </div>
 
-    <div class="pw-week glass" data-glass role="img" aria-label={`示意图：这一周的课程、吃饭和已有安排不动；${order.map((i) => `${tasks[i].title}排在${days[tasks[i].day].w} ${tasks[i].at[0]}–${tasks[i].at[1]}`).join('，')}，全部在截止前`}>
+    <div class="pw-week glass" data-glass role="img" aria-label={weekLabel(0)}>
       <div class="pw-head">
         <span></span>
-        {days.map((d, i) => (
-          <p class:list={['pw-dh', { today: d.today }]} style={`--i:${i}`}>
-            <b>{d.w}</b><span class="mono">{d.today ? '今天' : d.d}</span>
-            {tasks.some((t) => t.dueDay === i) && <em class="pw-due" data-due={tasks.findIndex((t) => t.dueDay === i)}>截止</em>}
-          </p>
-        ))}
+        {days.map((d, i) => {
+          const on = which((ci) => tasks.some((_, ti) => dueDay(ti, ci) === i));
+          const ti = tasks.findIndex((_, j) => dueDay(j) === i);
+          return (
+            <p class:list={['pw-dh', { today: d.today }]} style={`--i:${i}`}>
+              <b>{d.w}</b><span class="mono">{d.today ? '今天' : d.d}</span>
+              {on && <em class:list={['pw-due', { off: !has0(on) }]} data-cond={on} data-due={ti >= 0 ? ti : undefined}>截止</em>}
+            </p>
+          );
+        })}
       </div>
       <div class="pw-body">
         <div class="pw-axis">{ticks.map((h) => <span style={`top:${pct(h * 60)}%`}>{String(h).padStart(2, '0')}<i>:00</i></span>)}</div>
@@ -76,11 +110,20 @@ const rank = (i: number) => order.indexOf(i);
           <span class="pw-scanbox" aria-hidden="true"><span class="pw-scan"></span></span>
           {days.map((d, i) => (
             <div class="pw-col" style={`--i:${i}`}>
-              {free(d).map(([a, b]) => <span class="pw-free" style={`top:${pct(a)}%;height:${pct(b) - pct(a)}%`}></span>)}
-              {d.items.map((it) => <span class:list={['pw-it', it.k]} style={`top:${top(it.s)}%;height:${span(it.s, it.e)}%`}><em>{it.k === 'break' ? '' : it.t.split('|').map((w, j) => <>{j > 0 && <wbr />}{w}</>)}</em></span>)}
-              {tasks.map((t, j) => t.day === i && (
-                <span class="pw-new" data-new={j} style={`top:${top(t.at[0])}%;height:${span(t.at[0], t.at[1])}%`}>
-                  <em><b class="pw-lf">{t.short}</b><b class="pw-lt">{t.tiny}</b></em>
+              {availSets.map((a) => free(d, a.avail).map(([x, y]) => (
+                <span class:list={['pw-free', { off: !has0(a.cs) }]} data-cond={a.cs} style={`top:${pct(x)}%;height:${pct(y) - pct(x)}%`}></span>
+              )))}
+              {d.items.map((it) => (
+                <span class:list={['pw-it', it.k]} style={`top:${top(it.s)}%;height:${span(it.s, it.e)}%`}>
+                  {it.alt && <span class="pw-qz off" data-cond={altCs}></span>}
+                  <em data-cond={it.alt ? plainCs : undefined}>{it.k === 'break' ? '' : it.t.split('|').map((w, j) => <>{j > 0 && <wbr />}{w}</>)}</em>
+                  {it.alt && <em class="off" data-cond={altCs}>{it.alt.split('|').map((w, j) => <>{j > 0 && <wbr />}{w}</>)}</em>}
+                </span>
+              ))}
+              {blks.filter((b) => b.day === i).map((b) => (
+                <span class:list={['pw-new', { off: !b.cs.includes(0) }]} data-cond={b.cs.join(' ')} data-task={b.task}
+                  data-new={b.cs.includes(0) ? b.task : undefined} style={`top:${top(b.at[0])}%;height:${span(b.at[0], b.at[1])}%`}>
+                  <em><b class="pw-lf">{tasks[b.task].short}</b><b class="pw-lt">{tasks[b.task].tiny}</b></em>
                 </span>
               ))}
             </div>
